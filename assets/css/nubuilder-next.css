@@ -1,0 +1,1533 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   NuBuilder 5 — Core Stylesheet  (nubuilder-next.css)
+   Append-patched: scrollable nav + collapsible sidebar
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ══ CSS Custom Properties ═════════════════════════════════════════════════ */
+:root {
+  /* Layout */
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 60px;
+  --header-h: 60px;
+
+  /* Brand / Primary Accent */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-fg: #ffffff;
+  --color-primary: #2563eb;
+
+  /* Surfaces */
+  --bg-app: #f8fafc;
+  --bg-sidebar: #0f172a;
+  --bg-sidebar-hover: rgba(255,255,255,.08);
+  --bg-sidebar-active: rgba(37,99,235,.22);
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-hover: rgba(15,23,42,.04);
+  --bg-surface: #ffffff;
+  --bg-elevated: #f8fafc;
+  --surface-elevated: #ffffff;
+  --focus-ring: rgba(37, 99, 235, 0.3);
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-muted: #64748b;
+  --text-sidebar: #e2e8f0;
+
+  /* Typography Scale */
+  --font-xs: 0.75rem;
+  --font-sm: 0.8125rem;
+  --font-base: 0.875rem;
+  --font-lg: 1rem;
+  --font-xl: 1.125rem;
+  --font-2xl: 1.5rem;
+  --font-3xl: 2.25rem;
+
+  /* Borders & radius */
+  --border-color: #cbd5e1;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
+  --shadow-md: 0 4px 12px rgba(15,23,42,.12), 0 2px 4px rgba(15,23,42,.06);
+  --shadow-lg: 0 12px 28px -6px rgba(15,23,42,.15);
+
+  /* Status / Semantic Colors */
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #2563eb;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --transition: .18s cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="dark"] {
+  --primary: #38bdf8;
+  --primary-hover: #0284c7;
+  --primary-fg: #0f172a;
+  --color-primary: #38bdf8;
+
+  --bg-app: #090d16;
+  --bg-card: #131c2e;
+  --bg-subtle: #1e293b;
+  --bg-hover: rgba(255,255,255,.07);
+  --bg-surface: #131c2e;
+  --bg-elevated: #1e293b;
+  --surface-elevated: #1e293b;
+  --focus-ring: rgba(56, 189, 248, 0.4);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #94a3b8;
+  --text-muted: #94a3b8;
+  --text-sidebar: #f1f5f9;
+
+  --border-color: #334155;
+  --input-bg: #0f172a;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg: 0 12px 30px rgba(0,0,0,.6);
+
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #38bdf8;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #38bdf8;
+}
+
+/* ══ Reset / Base ═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px; line-height: 1.5;
+  color: var(--text-primary); background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══ App Shell ══════════════════════════════════════════════════════════════ */
+.nu-app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  overflow: hidden;
+  transition: grid-template-columns var(--transition);
+}
+/* Collapsed sidebar: icon-only mode */
+.nu-app.sidebar-collapsed {
+  grid-template-columns: var(--sidebar-w-collapsed) 1fr;
+}
+
+/* ══ Sidebar ═════════════════════════════════════════════════════════════════*/
+.nu-sidebar {
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  transition: width var(--transition);
+  width: var(--sidebar-w);
+  z-index: 100;
+}
+.nu-app.sidebar-collapsed .nu-sidebar {
+  width: var(--sidebar-w-collapsed);
+}
+
+/* ── Sidebar header ── */
+.nu-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+}
+.nu-logo {
+  width: 36px; height: 36px;
+  background: var(--primary); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -1px;
+  flex-shrink: 0;
+}
+.nu-version {
+  font-size: 11px; color: var(--text-muted); font-weight: 500;
+  transition: opacity var(--transition);
+}
+.nu-app.sidebar-collapsed .nu-version,
+.nu-app.sidebar-collapsed .nu-sidebar-header > *:not(.nu-logo) { display: none; }
+
+/* ── Nav ── SCROLLABLE */
+.nu-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.12) transparent;
+}
+.nu-nav::-webkit-scrollbar { width: 4px; }
+.nu-nav::-webkit-scrollbar-track { background: transparent; }
+.nu-nav::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.15);
+  border-radius: 4px;
+}
+
+/* ── Standard nav items (flat links) ── */
+.nu-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-sidebar);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.nu-nav-item:hover  { background: var(--bg-sidebar-hover); color: #fff; }
+.nu-nav-item.active { background: var(--bg-sidebar-active); color: var(--primary); }
+.nu-nav-item svg    { flex-shrink: 0; }
+/* hide labels in collapsed mode */
+.nu-app.sidebar-collapsed .nu-nav-item span { display: none; }
+.nu-app.sidebar-collapsed .nu-nav-item {
+  justify-content: center;
+  padding: 10px;
+}
+/* hide admin label in collapsed mode */
+.nu-app.sidebar-collapsed .nu-nav [style*="font-size:10px"] { display: none; }
+
+/* ── Collapsible nav groups ─────────────────────────────────────────────────
+   Rendered by MenuRenderer::renderItem() for type=group rows.
+   Structure:
+     <div class="nu-nav-group">
+       <button class="nu-nav-group-label" aria-expanded="true|false">
+         <svg/>  <span>Label</span>  <svg class="nu-nav-chevron"/>
+       </button>
+       <ul class="nu-nav-children" id="nu-group-{id}">
+         <li><a class="nu-nav-item">…</a></li>
+       </ul>
+     </div>
+   Toggle: JS adds/removes nu-nav-children--collapsed on the <ul>.
+   Chevron rotates via aria-expanded on the button.
+*/
+
+.nu-nav-group {
+  margin-bottom: 2px;
+}
+
+/* The group header button */
+.nu-nav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background var(--transition), color var(--transition);
+  /* push chevron to the right */
+  justify-content: flex-start;
+}
+.nu-nav-group-label:hover {
+  background: var(--bg-sidebar-hover);
+  color: #fff;
+}
+.nu-nav-group-label svg:first-child {
+  flex-shrink: 0;
+  opacity: .6;
+}
+.nu-nav-group-label span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chevron — sits at the end, rotates when collapsed */
+.nu-nav-chevron {
+  flex-shrink: 0;
+  transition: transform .2s ease;
+  margin-left: auto;
+  opacity: .6;
+}
+/* When aria-expanded=false the button signals collapsed state */
+.nu-nav-group-label[aria-expanded="false"] .nu-nav-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Children list */
+.nu-nav-children {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  /* Smooth height animation */
+  max-height: 1000px;
+  transition: max-height .25s ease, opacity .2s ease;
+  opacity: 1;
+}
+/* Collapsed state — toggled by JS */
+.nu-nav-children--collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Indent child items slightly */
+.nu-nav-children .nu-nav-item {
+  padding-left: 16px;
+}
+
+/* Divider */
+.nu-nav-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,.07);
+  margin: 6px 8px;
+}
+
+/* Collapsed sidebar: hide group labels */
+.nu-app.sidebar-collapsed .nu-nav-group-label span,
+.nu-app.sidebar-collapsed .nu-nav-chevron { display: none; }
+.nu-app.sidebar-collapsed .nu-nav-group-label {
+  justify-content: center;
+  padding: 10px;
+}
+
+/* ── Sidebar footer ── */
+.nu-sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+}
+.nu-user-info { margin-bottom: 6px; }
+.nu-user-name {
+  font-size: 13px; font-weight: 600; color: #fff;
+  transition: opacity var(--transition);
+}
+.nu-user-role {
+  font-size: 11px; color: var(--text-muted);
+  transition: opacity var(--transition);
+}
+.nu-app.sidebar-collapsed .nu-user-info,
+.nu-app.sidebar-collapsed .nu-sidebar-footer .nu-btn { display: none; }
+
+/* ══ Main Content ═══════════════════════════════════════════════════════════ */
+.nu-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 0;
+}
+.nu-header {
+  height: var(--header-h);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.nu-page-title {
+  font-size: 16px; font-weight: 600; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nu-header-actions { display: flex; gap: 8px; align-items: center; }
+.nu-menu-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary); padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center;
+}
+.nu-menu-btn:hover { background: var(--bg-hover); }
+.nu-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  background: var(--bg-app);
+}
+
+/* ══ Login ════════════════════════════════════════════════════════════════════*/
+.nu-login {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: var(--bg-sidebar);
+  padding: 24px;
+}
+.nu-login-card {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 40px 36px; width: 100%; max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+.nu-login-brand {
+  text-align: center; margin-bottom: 32px;
+}
+.nu-login-brand .nu-logo { width: 56px; height: 56px; font-size: 22px; margin: 0 auto 16px; }
+.nu-login-brand h1 { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.nu-login-brand p  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.nu-login-error {
+  display: none; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+  color: #ef4444; border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: 13px; margin-bottom: 16px;
+}
+
+/* ══ Form / Field Components ════════════════════════════════════════════════ */
+.nu-field { margin-bottom: 16px; }
+.nu-field label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); letter-spacing: 0.01em; }
+.nu-input, .nu-select {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--border-color); border-radius: var(--radius-md);
+  background: var(--input-bg, var(--bg-card)); color: var(--text-primary);
+  font-size: 13.5px; font-family: inherit; font-weight: 500;
+  transition: border-color var(--transition), box-shadow var(--transition), background-color var(--transition);
+}
+.nu-input:focus, .nu-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus-ring); }
+.nu-input[disabled] { opacity: .5; cursor: not-allowed; }
+
+/* ══ Buttons ════════════════════════════════════════════════════════════════ */
+.nu-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 16px; border: 1px solid transparent; border-radius: var(--radius-md);
+  font-size: 13.5px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: all var(--transition);
+  text-decoration: none; white-space: nowrap; user-select: none;
+}
+.nu-btn:active { transform: translateY(1px); }
+.nu-btn-primary { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); box-shadow: 0 2px 4px rgba(37,99,235,.2); }
+.nu-btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); box-shadow: 0 4px 12px rgba(37,99,235,.35); }
+.nu-btn-ghost { background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); }
+.nu-btn-ghost:hover { background: var(--bg-hover); border-color: var(--primary); color: var(--primary); }
+.nu-btn-danger { background: var(--error); color: #fff; border-color: var(--error); }
+.nu-btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+.nu-btn-sm { padding: 5px 12px; font-size: 12px; border-radius: var(--radius-sm); }
+.nu-btn-block { width: 100%; }
+
+/* ══ Cards ══════════════════════════════════════════════════════════════════ */
+.nu-card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), border-color var(--transition);
+}
+.nu-card:hover { box-shadow: var(--shadow-md); }
+.nu-card-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); }
+
+/* ══ Tables ══════════════════════════════════════════════════════════════════*/
+.nu-table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+.nu-table {
+  width: 100%; border-collapse: collapse; font-size: 13.5px;
+}
+.nu-table th, .nu-table td {
+  padding: 11px 16px; text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+.nu-table th {
+  font-weight: 700; color: var(--text-primary);
+  background: var(--bg-subtle); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
+}
+.nu-table td {
+  color: var(--text-primary);
+}
+.nu-table tbody tr {
+  transition: background-color var(--transition);
+}
+.nu-table tbody tr:hover { background: var(--bg-hover); }
+
+/* ══ Overlay / Modal ════════════════════════════════════════════════════════ */
+.nu-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 200;
+}
+.nu-overlay.open { display: block; }
+
+/* ══ Spinner ════════════════════════════════════════════════════════════════ */
+.nu-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: nu-spin .7s linear infinite;
+}
+@keyframes nu-spin { to { transform: rotate(360deg); } }
+
+/* ══ Toast ══════════════════════════════════════════════════════════════════ */
+.nu-toast-container {
+  position: fixed; bottom: 24px; right: 24px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 9999;
+}
+.nu-toast {
+  background: var(--bg-card); color: var(--text-primary);
+  border-left: 4px solid var(--primary); padding: 12px 18px;
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+  font-size: 13px; animation: nu-fadein .25s ease;
+}
+.nu-toast.error { border-left-color: #ef4444; color: #ef4444; }
+@keyframes nu-fadein { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+/* ══ Mobile ══════════════════════════════════════════════════════════════════*/
+@media (max-width: 768px) {
+  .nu-app {
+    grid-template-columns: 1fr;
+  }
+  .nu-sidebar {
+    position: fixed; left: -100%; top: 0; height: 100%;
+    width: var(--sidebar-w) !important;
+    z-index: 300;
+    transition: left var(--transition);
+  }
+  .nu-sidebar.open  { left: 0; }
+  .nu-menu-btn { display: flex; }
+  .nu-content  { padding: 16px; }
+  /* disable collapse on mobile */
+  .nu-app.sidebar-collapsed { grid-template-columns: 1fr; }
+}
+@media (min-width: 769px) {
+  .nu-menu-btn { display: flex; } /* keep visible as collapse toggle */
+}
+
+/* ══ Form-builder canvas — base field card ══════════════════════════════════ */
+.nb-cfield {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  background: var(--bg-card);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.nb-cfield-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; cursor: pointer; user-select: none;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.nb-cfield-header:hover { background: var(--bg-hover); border-radius: var(--radius-sm); }
+.nb-cfield-drag { cursor: grab; color: var(--text-primary); font-size: 14px; flex-shrink: 0; opacity: 0.8; }
+.nb-cfield-type-badge {
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  background: rgba(14, 165, 233, 0.15); color: var(--primary); padding: 3px 8px; border-radius: 6px;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nb-cfield-label {
+  flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nb-cfield-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.nb-cfield-btn { background: var(--bg-card); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); font-size: 13px; padding: 3px 7px; border-radius: 6px; transition: all .15s ease; }
+.nb-cfield-btn:hover { background: var(--bg-hover); border-color: var(--primary); color: var(--primary); }
+.nb-cfield-btn.del:hover { background: rgba(239,68,68,.12); border-color: #ef4444; color: #ef4444; }
+.nb-cfield-body { display: none; padding: 12px 14px; border-top: 1px solid var(--border-color); }
+.nb-cfield-body.open { display: block; }
+.nb-fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.nb-fp      { display: flex; flex-direction: column; gap: 4px; }
+.nb-fp label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.nb-fp-full { grid-column: 1 / -1; }
+.nb-fp-check { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: var(--text-primary); font-weight: 600; }
+.nb-canvas-empty {
+  color: var(--text-secondary); text-align: center;
+  padding: 40px; font-size: 14px; border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md); margin: 16px;
+}
+.nb-toolbox {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.nb-tools-group {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.nb-tools-group-label {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em;
+}
+
+.nb-tool {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: var(--radius-sm); cursor: grab;
+  font-size: 12px; font-weight: 600; color: var(--text-primary);
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+  border: 1px solid var(--border-color);
+  margin-bottom: 4px; background: var(--bg-card);
+  user-select: none;
+}
+.nb-tool:hover {
+  background: var(--bg-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.nb-tool svg {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.nb-tool:hover svg {
+  color: var(--primary);
+}
+.nb-tab { padding: 8px 14px; border: none; border-bottom: 3px solid transparent; background: none; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: .15s; }
+.nb-tab.active, .nb-tab:hover { color: var(--primary); border-bottom-color: var(--primary); }
+.nb-tab-panel { display: none; }
+.nb-tab-panel.active { display: block; }
+.nb-canvas.drag-over { border: 2px dashed var(--primary); background: rgba(14,165,233,.04); }
+
+/* ── col-span badge on field cards ──────────────────────────────────────────*/
+.nb-col-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-left: 4px;
+  user-select: none;
+}
+
+/* ── Canvas toolbar ──────────────────────────────────────────────────────────*/
+.nb-canvas-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed var(--border-color);
+  flex-wrap: wrap;
+}
+
+/* ── Drag states ─────────────────────────────────────────────────────────────*/
+.drag-source   { opacity: .45; }
+.drag-over     { outline: 2px dashed var(--primary); outline-offset: 2px; background: rgba(14,165,233,.04) !important; border-radius: var(--radius-sm); }
+
+/* ── Container drag handle ───────────────────────────────────────────────────*/
+.nb-container-drag {
+  cursor: grab;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  opacity: .6;
+  flex-shrink: 0;
+  user-select: none;
+}
+.nb-container-drag:active { cursor: grabbing; }
+
+/* ══ Builder canvas — ROW container ════════════════════════════════════════ */
+.nb-row {
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--bg-subtle);
+  transition: border-color var(--transition);
+}
+.nb-row:hover { border-color: var(--primary); }
+
+.nb-row-drop {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 8px;
+  min-height: 52px;
+  align-items: start;
+}
+.nb-row-drop > .nb-cfield { margin-bottom: 0; }
+
+/* ══ Form Designer — 12-Column Grid Lines Overlay & Alignment Guides ═════════ */
+.nb-show-gridlines .nb-row-body,
+.nb-show-gridlines .nb-row-drop {
+  position: relative;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(79, 107, 237, 0.08) 0,
+    rgba(79, 107, 237, 0.08) calc((100% - 44px) / 12),
+    transparent calc((100% - 44px) / 12),
+    transparent calc((100% - 44px) / 12 + 4px)
+  ) !important;
+  background-size: 100% 100%;
+}
+
+.nb-show-gridlines #formCanvas {
+  background-image: linear-gradient(to right, rgba(79, 107, 237, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(79, 107, 237, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.nb-show-gridlines .nb-cfield {
+  outline: 1px dashed rgba(79, 107, 237, 0.35);
+  outline-offset: -1px;
+}
+
+/* ══ Builder canvas — SECTION container ════════════════════════════════════ */
+.nb-section {
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+.nb-section:focus-within { box-shadow: 0 0 0 3px rgba(14,165,233,.15); }
+
+.nb-section > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  cursor: default;
+  user-select: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.nb-section-body { padding: 12px; }
+.nb-section-body.collapsed { display: none; }
+
+.nb-section-label {
+  flex: 1;
+  font-weight: 700;
+  font-size: 13px;
+  border: none !important;
+  background: transparent !important;
+  color: var(--primary);
+  padding: 0 !important;
+  box-shadow: none !important;
+  min-width: 0;
+}
+.nb-section-label::placeholder { color: color-mix(in srgb, var(--primary) 50%, transparent); }
+
+/* ══ Builder canvas — GROUP container ══════════════════════════════════════ */
+.nb-group {
+  border: 2px solid var(--warning, #f59e0b);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+.nb-group:focus-within { box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+
+.nb-group > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--warning, #f59e0b) 8%, transparent);
+  cursor: default;
+  user-select: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--warning, #f59e0b) 25%, transparent);
+}
+
+.nb-group-body { padding: 10px 12px; }
+.nb-group-body.collapsed { display: none; }
+
+.nb-group-label {
+  flex: 1;
+  font-weight: 700;
+  font-size: 13px;
+  border: none !important;
+  background: transparent !important;
+  color: var(--warning, #f59e0b);
+  padding: 0 !important;
+  box-shadow: none !important;
+  min-width: 0;
+}
+.nb-group-label::placeholder { color: color-mix(in srgb, var(--warning, #f59e0b) 50%, transparent); }
+
+/* ══ PREVIEW FORM — nu-generated-form ════════════════════════════════════════*/
+.nu-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.nu-field-wrapper label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.nu-form-row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+  align-items: start;
+}
+
+.nu-section {
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  background: var(--bg-card, #fff);
+}
+.nu-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  cursor: default;
+  user-select: none;
+}
+.nu-section-header[onclick] { cursor: pointer; }
+.nu-section-header:has([data-target]):hover { filter: brightness(.97); }
+
+.nu-section-body { padding: 16px; }
+
+.nu-section-toggle,
+.nu-group-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 4px 0 0;
+  flex-shrink: 0;
+  transition: transform .2s;
+}
+
+.nu-group {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  background: var(--bg-card, #fff);
+}
+.nu-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg-subtle, #f8fafc);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  cursor: default;
+  user-select: none;
+}
+.nu-group-header[onclick] { cursor: pointer; }
+
+.nu-group-body { padding: 14px; }
+
+.nu-generated-form .nu-input {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--input-bg, #fff);
+  color: var(--text-primary, #0f172a);
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color .18s, box-shadow .18s;
+}
+.nu-generated-form .nu-input:focus {
+  outline: none;
+  border-color: var(--primary, #0ea5e9);
+  box-shadow: 0 0 0 3px rgba(14,165,233,.12);
+}
+
+.nu-generated-form > [type="submit"],
+.nu-generated-form .nu-form-footer { margin-top: 20px; }
+
+[data-theme="dark"] .nu-section,
+[data-theme="dark"] .nu-group { background: var(--bg-card); }
+[data-theme="dark"] .nu-group-header {
+  background: var(--bg-subtle);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .nu-generated-form .nu-input {
+  background: var(--input-bg, #1e293b);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* ══ Nav Form Item — inline label + action dropdown ══════════════════════════
+   Rendered by MenuRenderer for type=form items.
+   The label (primary button) is always visible.
+   The dropdown with Browse Inline / Browse Popup / Preview Form is HIDDEN
+   by default and only shown when the chevron button is clicked.
+   The sidebar nav overflow:hidden on .nu-nav means we use
+   position:fixed for the dropdown so it escapes the clipping context.
+══════════════════════════════════════════════════════════════════════════════ */
+
+/* Wrapper: just a flex row, no extra height */
+.nu-nav-form-item {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1px;
+}
+
+/* Primary label button — takes most of the row width, looks like nu-nav-item */
+.nu-nav-form-primary {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px 9px 10px;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  color: var(--text-sidebar);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+.nu-nav-form-primary:hover { background: var(--bg-sidebar-hover); color: #fff; }
+.nu-nav-form-item.active .nu-nav-form-primary {
+  background: var(--bg-sidebar-active);
+  color: var(--primary);
+}
+
+/* Chevron toggle — small button beside the label */
+.nu-nav-form-chevron {
+  flex-shrink: 0;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition), color var(--transition);
+}
+.nu-nav-form-chevron:hover { background: var(--bg-sidebar-hover); color: #fff; }
+.nu-nav-form-chevron svg {
+  transition: transform .2s ease;
+  pointer-events: none;
+  display: block;
+}
+/* Rotate when open */
+.nu-nav-form-item.open .nu-nav-form-chevron svg {
+  transform: rotate(180deg);
+}
+
+/* Dropdown — HIDDEN by default, floats below the item */
+.nu-nav-form-dropdown {
+  display: none;                    /* ← hidden until .open is added by JS */
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: #1a2540;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  z-index: 9999;
+  overflow: hidden;
+}
+.nu-nav-form-dropdown.open {
+  display: block;                   /* ← JS adds this class to show it */
+}
+
+/* Individual action buttons in the dropdown */
+.nu-nav-form-action {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-sidebar);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+.nu-nav-form-action:hover { background: var(--bg-sidebar-hover); color: #fff; }
+.nu-nav-form-action + .nu-nav-form-action {
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+/* Collapsed sidebar: hide label text, hide chevron */
+.nu-app.sidebar-collapsed .nu-nav-form-primary span { display: none; }
+.nu-app.sidebar-collapsed .nu-nav-form-primary {
+  justify-content: center;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+}
+.nu-app.sidebar-collapsed .nu-nav-form-chevron { display: none; }
+
+/* ── Mobile Form Stacking and Modern Spacing Overrides ── */
+@media (max-width: 768px) {
+  .nu-form-row, .nu-form-grid, .nb-row-drop {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .nu-field, .nb-cfield {
+    grid-column: span 12 !important;
+  }
+  .nb-builder-wrap {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .nb-toolbox {
+    width: 100% !important;
+    margin-bottom: 16px;
+  }
+}
+
+/* Glassmorphism styling details for datagrids and panels */
+.nu-table-wrap {
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.nu-table-wrap:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+/* Th-resizer indicator visual aid */
+.nu-th-resizer:hover {
+  background: var(--primary) !important;
+  opacity: 0.7;
+}
+
+/* Interactive Pagination polish */
+.nu-btn-ghost:hover {
+  background: var(--bg-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* ── User Profile Dropdown in Header ── */
+.nu-user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.nu-user-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 6px);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.nu-user-dropdown-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+}
+
+.nu-user-dropdown-text {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nu-user-dropdown-caret {
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.nu-user-dropdown-toggle[aria-expanded="true"] .nu-user-dropdown-caret {
+  transform: rotate(180deg);
+}
+
+.nu-user-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 1000;
+  display: none;
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
+  overflow: hidden;
+  animation: nu-fade-in 0.15s ease-out;
+}
+
+.nu-user-dropdown-menu.show {
+  display: block;
+}
+
+.nu-user-dropdown-header {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nu-dropdown-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nu-dropdown-user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nu-user-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+}
+
+.nu-user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nu-user-dropdown-item:hover {
+  background: var(--bg-hover);
+  color: var(--primary);
+}
+
+.nu-user-dropdown-logout {
+  color: #ef4444;
+}
+
+.nu-user-dropdown-logout:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444 !important;
+}
+
+@keyframes nu-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure Select2 dropdown has correct z-index in modals and subforms */
+.select2-container--open,
+.select2-dropdown {
+  z-index: 99999 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NuBuilder 5 — Mobile Responsive & Touch-Target Optimization Styles
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tab Container Styling ── */
+.nu-tabs {
+  margin-bottom: 20px;
+}
+.nu-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.nu-tab-btn {
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.nu-tab-btn:hover {
+  color: var(--primary);
+}
+.nu-tab-btn.nu-tab-active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+.nu-tab-panel {
+  display: block;
+}
+.nu-tab-panel-hidden {
+  display: none !important;
+}
+
+/* ── Layout Grid Systems ── */
+.nu-form-grid {
+  display: grid;
+  gap: 16px;
+}
+.nu-form-grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.nu-form-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nu-form-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.nu-form-grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.nu-field-span-1 { grid-column: span 1 / span 1; }
+.nu-field-span-2 { grid-column: span 2 / span 2; }
+.nu-field-span-3 { grid-column: span 3 / span 3; }
+.nu-field-span-4 { grid-column: span 4 / span 4; }
+
+/* ── Group Collapsing Styles ── */
+.nu-group-body-collapsed {
+  display: none !important;
+}
+.nu-group-chevron {
+  transition: transform 0.25s ease;
+}
+.nu-chevron-collapsed {
+  transform: rotate(-90deg) !important;
+}
+
+/* ── Admin KPI / Dashboard Grid ── */
+.nu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.nu-kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.nu-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.nu-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.nu-kpi-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+.nu-kpi-change {
+  font-size: 11px;
+  font-weight: 500;
+  color: #22c55e;
+}
+.nu-kpi-change.up { color: #22c55e; }
+.nu-kpi-change.down { color: #ef4444; }
+
+/* ── Responsive Overrides on Mobile/Narrow Screens ── */
+@media (max-width: 768px) {
+  /* Simplified header adjustments */
+  .nu-header {
+    padding: 0 12px !important;
+    gap: 8px !important;
+  }
+  .nu-page-title {
+    font-size: 14px !important;
+    font-weight: 600;
+  }
+  .nu-user-dropdown-toggle {
+    padding: 6px 8px !important;
+  }
+
+  /* Touch target sizes & tap feedback */
+  .nu-input, select.nu-input, textarea.nu-input {
+    padding: 12px 14px !important;
+    font-size: 16px !important; /* Prevents auto-zoom on iOS on focus */
+  }
+
+  /* Force form labels to sit on top of the input fields on smaller screens */
+  .nu-field-wrapper > div {
+    display: block !important;
+  }
+  .nu-field-wrapper label {
+    text-align: left !important;
+    padding-right: 0 !important;
+    padding-bottom: 6px !important;
+    padding-top: 0 !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    display: block !important;
+  }
+  .nu-btn {
+    padding: 12px 20px !important;
+    font-size: 15px !important;
+    min-height: 44px; /* Standard accessibility tap size */
+  }
+  .nu-btn-sm {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    min-height: 36px;
+  }
+
+  /* Fields and spacings */
+  .nu-field {
+    margin-bottom: 20px !important;
+  }
+
+  /* Collapsible group header touch target */
+  .nu-group-header, .nu-section-header {
+    padding: 12px 14px !important;
+  }
+
+  /* Layout Grid Stacking */
+  .nu-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .nu-field {
+    grid-column: span 1 !important;
+  }
+
+  /* Modals, Lookups and Overlay responsiveness */
+  .nu-form-overlay > div, .nu-lookup-overlay > div, .nu-browse-overlay > div {
+    width: 96% !important;
+    max-width: 100% !important;
+    margin: 8px auto !important;
+    padding: 16px !important;
+    max-height: 96vh !important;
+    border-radius: 12px !important;
+  }
+
+  /* Dashboard KPI items columns stacking */
+  .nu-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 10px !important;
+  }
+  .nu-kpi {
+    padding: 12px 16px !important;
+  }
+  .nu-kpi-value {
+    font-size: 22px !important;
+  }
+
+  /* Dashboard widgets stacking on mobile */
+  #nuWidgetGrid, .nu-role-group-body {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .nu-widget-card {
+    grid-column: span 12 !important;
+    grid-row: auto !important;
+  }
+}
+
+/* ── Mobile-Specific Screen Optimizations ── */
+@media (max-width: 480px) {
+  /* Simplified User Profile in Top Header */
+  .nu-user-dropdown-text {
+    display: none !important;
+  }
+  .nu-user-icon {
+    display: block !important;
+  }
+
+  /* Login card padding reduction on very narrow screens */
+  .nu-login-card {
+    padding: 24px 20px !important;
+    border-radius: var(--radius-md) !important;
+  }
+}
+
+/* ── Modern Card & Widget Base Rules ── */
+.nu-widget,
+.nu-card,
+.nu-kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  transition: box-shadow var(--transition), transform var(--transition);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.nu-widget:hover,
+.nu-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Widget Header */
+.nu-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+}
+
+.nu-widget-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nu-widget-title i {
+  opacity: 0.7;
+}
+
+/* KPI specific */
+.nu-kpi-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.nu-kpi-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.nu-kpi-change {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+.nu-kpi-change.up   { color: var(--success); }
+.nu-kpi-change.down { color: var(--error); }
+
+/* Grid improvements */
+.nu-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* Responsive helpers */
+@media (max-width: 1024px) {
+  .nu-widget-grid { grid-template-columns: repeat(6, 1fr); }
+}
+@media (max-width: 640px) {
+  .nu-widget-grid { grid-template-columns: 1fr; gap: var(--space-4); }
+}
+
+/* ══ Skeleton Loaders ══════════════════════════════════════════════════════ */
+.nu-skeleton {
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-hover) 50%, var(--bg-subtle) 75%);
+  background-size: 200% 100%;
+  animation: nu-skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+.nu-skeleton-text {
+  height: 0.875rem;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.nu-skeleton-card {
+  height: 120px;
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.nu-skeleton-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+@keyframes nu-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

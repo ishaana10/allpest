@@ -1,0 +1,41 @@
+# NuBuilder 5 - .gitignore
+
+# Local config with real credentials - NEVER commit this
+config.local.php
+
+# SQLite databases
+nu.db
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Uploads
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# PHP cache
+*.cache
+
+# Node (if any)
+node_modules/
+npm-debug.log
+
+# Test artifacts
+core/test
+api/test.php
+
+# Composer Dependencies
+vendor/
+composer.lock
