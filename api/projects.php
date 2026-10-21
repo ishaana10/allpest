@@ -590,17 +590,80 @@ switch ($action) {
         }
         break;
 
+    case 'list_server_packages':
+        if (!$isGlobeAdmin) {
+            json_response(['success' => false, 'error' => 'Only Globe Admin can view server packages'], 403);
+        }
+
+        $baseDir = dirname(__DIR__);
+        $foundFiles = [];
+
+        // Scan root directory and standard subdirectories
+        $dirsToScan = [$baseDir, $baseDir . '/uploads', $baseDir . '/db', $baseDir . '/temp'];
+
+        foreach ($dirsToScan as $dir) {
+            if (!is_dir($dir)) continue;
+            $items = @scandir($dir);
+            if (!is_array($items)) continue;
+
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') continue;
+                $fullPath = $dir . '/' . $item;
+                if (!is_file($fullPath)) continue;
+
+                $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
+                if (in_array($ext, ['sql', 'zip'], true)) {
+                    $relPath = substr($fullPath, strlen($baseDir) + 1);
+                    $foundFiles[] = [
+                        'name' => $item,
+                        'path' => $relPath,
+                        'full_path' => $fullPath,
+                        'size' => filesize($fullPath),
+                        'size_formatted' => round(filesize($fullPath) / 1024, 1) . ' KB',
+                        'modified_at' => date('Y-m-d H:i:s', filemtime($fullPath))
+                    ];
+                }
+            }
+        }
+
+        json_response([
+            'success' => true,
+            'base_dir' => $baseDir,
+            'files' => $foundFiles
+        ]);
+        break;
+
     case 'import_project':
         if (!$isGlobeAdmin) {
             json_response(['success' => false, 'error' => 'Only Globe Admin can import projects'], 403);
         }
 
-        if (empty($_FILES['package_file']['tmp_name']) || !is_uploaded_file($_FILES['package_file']['tmp_name'])) {
-            json_response(['success' => false, 'error' => 'Please upload a valid project .sql or .zip package file'], 400);
+        $serverFilePath = trim($input['server_file_path'] ?? ($_POST['server_file_path'] ?? ''));
+        $fileTmp = '';
+        $fileName = '';
+
+        if ($serverFilePath !== '') {
+            $baseDir = dirname(__DIR__);
+            $realBaseDir = realpath($baseDir);
+            $targetPath = realpath($baseDir . '/' . ltrim($serverFilePath, '/\\'));
+
+            if (!$targetPath || !is_file($targetPath)) {
+                $targetPath = realpath($serverFilePath);
+            }
+
+            if (!$targetPath || !is_file($targetPath)) {
+                json_response(['success' => false, 'error' => 'Server file not found: ' . htmlspecialchars($serverFilePath)], 404);
+            }
+
+            $fileTmp = $targetPath;
+            $fileName = basename($targetPath);
+        } elseif (!empty($_FILES['package_file']['tmp_name']) && is_uploaded_file($_FILES['package_file']['tmp_name'])) {
+            $fileTmp = $_FILES['package_file']['tmp_name'];
+            $fileName = $_FILES['package_file']['name'];
+        } else {
+            json_response(['success' => false, 'error' => 'Please upload a package file or select a valid server file'], 400);
         }
 
-        $fileTmp = $_FILES['package_file']['tmp_name'];
-        $fileName = $_FILES['package_file']['name'];
         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
         $sqlContent = '';

@@ -120,15 +120,39 @@ $projects = ProjectContext::getAccessibleProjects();
 
 <!-- ── IMPORT PROJECT MODAL ── -->
 <div id="projImportModal" class="nu-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div class="nu-card" style="width:100%; max-width:520px; padding:24px; background:var(--bg-card); border-radius:8px;">
+  <div class="nu-card" style="width:100%; max-width:560px; padding:24px; background:var(--bg-card); border-radius:8px;">
     <h3 style="font-size:16px; font-weight:600; margin:0 0 8px 0;">Import Application Project Package</h3>
     <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.4;">
-      Upload a <code>.sql</code> export or <code>.zip</code> standalone project package (e.g. Allpest or custom application bundle).
+      Choose whether to upload a package file from your local computer or select a package file from the webserver folder.
     </p>
 
-    <div class="nu-field" style="margin-bottom:16px;">
-      <label style="font-weight:600; display:block; margin-bottom:6px;">Select Package File (.sql or .zip) <span style="color:var(--color-danger)">*</span></label>
+    <!-- Source Selection Tabs -->
+    <div style="display:flex; gap:12px; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+        <input type="radio" name="projImportSource" value="upload" checked onchange="ProjectsModule.toggleImportSource('upload')">
+        💻 Upload from Local Computer
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+        <input type="radio" name="projImportSource" value="server" onchange="ProjectsModule.toggleImportSource('server')">
+        📁 Select from Webserver Folder
+      </label>
+    </div>
+
+    <!-- Upload Option -->
+    <div id="projImportSourceUpload" class="nu-field" style="margin-bottom:16px;">
+      <label style="font-weight:600; display:block; margin-bottom:6px;">Select Local File (.sql or .zip) <span style="color:var(--color-danger)">*</span></label>
       <input type="file" id="projImportFile" accept=".sql,.zip" class="nu-input" style="width:100%;">
+    </div>
+
+    <!-- Server Folder Option -->
+    <div id="projImportSourceServer" class="nu-field" style="display:none; margin-bottom:16px;">
+      <label style="font-weight:600; display:block; margin-bottom:6px;">Detected Packages on Webserver <span style="color:var(--color-danger)">*</span></label>
+      <select id="projServerFileSelect" class="nu-input" style="width:100%; margin-bottom:10px;" onchange="ProjectsModule.onServerFileSelect(this.value)">
+        <option value="">Scanning server folder...</option>
+      </select>
+
+      <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Or specify relative file path from root:</label>
+      <input type="text" id="projServerFilePathInput" class="nu-input" placeholder="e.g. install.sql or uploads/allpest.zip" style="width:100%;">
     </div>
 
     <div id="projImportStatus" style="display:none; margin-bottom:16px; font-size:13px; padding:10px 12px; border-radius:6px;"></div>
@@ -550,10 +574,59 @@ $projects = ProjectContext::getAccessibleProjects();
       }
     }
 
+    function toggleImportSource(mode) {
+      if (mode === 'server') {
+        if ($('projImportSourceUpload')) $('projImportSourceUpload').style.display = 'none';
+        if ($('projImportSourceServer')) $('projImportSourceServer').style.display = 'block';
+        loadServerPackages();
+      } else {
+        if ($('projImportSourceUpload')) $('projImportSourceUpload').style.display = 'block';
+        if ($('projImportSourceServer')) $('projImportSourceServer').style.display = 'none';
+      }
+    }
+
+    async function loadServerPackages() {
+      var select = $('projServerFileSelect');
+      if (!select) return;
+      select.innerHTML = '<option value="">Scanning server folder...</option>';
+
+      try {
+        var res = await fetch('api/projects.php?action=list_server_packages');
+        var data = await res.json();
+        select.innerHTML = '';
+
+        if (data.success && data.files && data.files.length > 0) {
+          select.innerHTML = '<option value="">-- Choose a package file found on server --</option>';
+          data.files.forEach(function(f) {
+            var opt = document.createElement('option');
+            opt.value = f.path;
+            opt.textContent = f.name + ' (' + f.size_formatted + ' • ' + f.path + ')';
+            select.appendChild(opt);
+          });
+        } else {
+          select.innerHTML = '<option value="">No .sql or .zip package files found automatically in webserver root</option>';
+        }
+      } catch (e) {
+        select.innerHTML = '<option value="">Failed to scan server directory</option>';
+      }
+    }
+
+    function onServerFileSelect(val) {
+      if ($('projServerFilePathInput')) {
+        $('projServerFilePathInput').value = val || '';
+      }
+    }
+
     function openImportModal() {
       var statusDiv = $('projImportStatus');
       if (statusDiv) statusDiv.style.display = 'none';
       if ($('projImportFile')) $('projImportFile').value = '';
+      if ($('projServerFilePathInput')) $('projServerFilePathInput').value = '';
+
+      var defaultRadio = document.querySelector('input[name="projImportSource"][value="upload"]');
+      if (defaultRadio) defaultRadio.checked = true;
+      toggleImportSource('upload');
+
       if ($('projImportModal')) $('projImportModal').style.display = 'flex';
     }
 
@@ -562,18 +635,34 @@ $projects = ProjectContext::getAccessibleProjects();
     }
 
     async function executeProjectImport() {
-      var fileInput = $('projImportFile');
-      var statusDiv = $('projImportStatus');
-      var btn = $('btnRunProjectImport');
-
-      if (!fileInput || !fileInput.files.length) {
-        alert('Please select a .sql or .zip project package file to upload.');
-        return;
+      var sourceMode = 'upload';
+      var radios = document.getElementsByName('projImportSource');
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+          sourceMode = radios[i].value;
+          break;
+        }
       }
 
-      var file = fileInput.files[0];
+      var statusDiv = $('projImportStatus');
+      var btn = $('btnRunProjectImport');
       var formData = new FormData();
-      formData.append('package_file', file);
+
+      if (sourceMode === 'server') {
+        var serverPath = ($('projServerFilePathInput') ? $('projServerFilePathInput').value : '').trim();
+        if (!serverPath) {
+          alert('Please select or specify a valid relative webserver file path.');
+          return;
+        }
+        formData.append('server_file_path', serverPath);
+      } else {
+        var fileInput = $('projImportFile');
+        if (!fileInput || !fileInput.files.length) {
+          alert('Please select a .sql or .zip project package file from your computer to upload.');
+          return;
+        }
+        formData.append('package_file', fileInput.files[0]);
+      }
 
       btn.disabled = true;
       btn.textContent = 'Importing Package...';
@@ -649,6 +738,9 @@ $projects = ProjectContext::getAccessibleProjects();
       openImportModal: openImportModal,
       closeImportModal: closeImportModal,
       executeProjectImport: executeProjectImport,
+      toggleImportSource: toggleImportSource,
+      loadServerPackages: loadServerPackages,
+      onServerFileSelect: onServerFileSelect,
       autoCode: autoCode,
       filterList: filterList,
       _destroy: _destroy
