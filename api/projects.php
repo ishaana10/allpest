@@ -590,6 +590,166 @@ switch ($action) {
         }
         break;
 
+    case 'import_project':
+        if (!$isGlobeAdmin) {
+            json_response(['success' => false, 'error' => 'Only Globe Admin can import projects'], 403);
+        }
+
+        if (empty($_FILES['package_file']['tmp_name']) || !is_uploaded_file($_FILES['package_file']['tmp_name'])) {
+            json_response(['success' => false, 'error' => 'Please upload a valid project .sql or .zip package file'], 400);
+        }
+
+        $fileTmp = $_FILES['package_file']['tmp_name'];
+        $fileName = $_FILES['package_file']['name'];
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        $sqlContent = '';
+
+        if ($ext === 'zip') {
+            if (!class_exists('ZipArchive')) {
+                json_response(['success' => false, 'error' => 'ZipArchive PHP extension is required to extract ZIP packages'], 500);
+            }
+            $zip = new ZipArchive();
+            if ($zip->open($fileTmp) === true) {
+                // Look for project.sql, database.sql, or any .sql file in zip
+                $sqlIndex = $zip->locateName('project.sql');
+                if ($sqlIndex === false) {
+                    $sqlIndex = $zip->locateName('database.sql');
+                }
+                if ($sqlIndex === false) {
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $stat = $zip->statIndex($i);
+                        if ($stat && strtolower(pathinfo($stat['name'], PATHINFO_EXTENSION)) === 'sql') {
+                            $sqlIndex = $i;
+                            break;
+                        }
+                    }
+                }
+
+                if ($sqlIndex !== false) {
+                    $sqlContent = $zip->getFromIndex($sqlIndex);
+                }
+                $zip->close();
+            }
+            if (!$sqlContent) {
+                json_response(['success' => false, 'error' => 'No SQL export dump found inside ZIP archive'], 400);
+            }
+        } elseif ($ext === 'sql') {
+            $sqlContent = file_get_contents($fileTmp);
+        } else {
+            json_response(['success' => false, 'error' => 'Unsupported file format. Please upload a .sql or .zip package file'], 400);
+        }
+
+        if (empty(trim($sqlContent))) {
+            json_response(['success' => false, 'error' => 'Uploaded SQL file is empty'], 400);
+        }
+
+        $pdo = $db->getPdo();
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+
+        try {
+            // Split and execute SQL statements safely
+            $statements = [];
+            $length = strlen($sqlContent);
+            $current = '';
+            $inSingleQuote = false;
+            $inDoubleQuote = false;
+            $escaped = false;
+
+            for ($i = 0; $i < $length; $i++) {
+                $char = $sqlContent[$i];
+
+                if ($escaped) {
+                    $current .= $char;
+                    $escaped = false;
+                    continue;
+                }
+
+                if ($char === '\\') {
+                    $current .= $char;
+                    $escaped = true;
+                    continue;
+                }
+
+                if ($char === "'" && !$inDoubleQuote) {
+                    $inSingleQuote = !$inSingleQuote;
+                } elseif ($char === '"' && !$inSingleQuote) {
+                    $inDoubleQuote = !$inDoubleQuote;
+                }
+
+                if ($char === ';' && !$inSingleQuote && !$inDoubleQuote) {
+                    $statements[] = $current;
+                    $current = '';
+                } else {
+                    $current .= $char;
+                }
+            }
+
+            if (trim($current) !== '') {
+                $statements[] = $current;
+            }
+
+            $executedCount = 0;
+            $importedProjectId = null;
+
+            foreach ($statements as $stmt) {
+                $stmtTrim = trim($stmt);
+                if ($stmtTrim !== '') {
+                    try {
+                        $pdo->exec($stmtTrim);
+                        $executedCount++;
+
+                        // Attempt to extract imported project ID if nu_projects row was inserted/replaced
+                        if (preg_match('/INTO\s+`?nu_projects`?\s*\(.*?\)\s*VALUES\s*\(\s*(\d+)/i', $stmtTrim, $m)) {
+                            $importedProjectId = (int)$m[1];
+                        }
+                    } catch (PDOException $e) {
+                        // Ignore duplicate key or existing table errors gracefully
+                        $msg = $e->getMessage();
+                        if (strpos($msg, 'already exists') === false && strpos($msg, 'Duplicate entry') === false) {
+                            throw $e;
+                        }
+                    }
+                }
+            }
+
+            // If project ID wasn't explicitly captured from SQL, find the latest created/updated project
+            if (!$importedProjectId) {
+                $latestProj = $db->fetchOne("SELECT project_id FROM nu_projects ORDER BY project_id DESC LIMIT 1");
+                if ($latestProj) {
+                    $importedProjectId = (int)$latestProj['project_id'];
+                }
+            }
+
+            // Ensure current user is assigned as owner/member of the imported project
+            if ($importedProjectId && $userId > 0) {
+                $existingMember = $db->fetchOne("SELECT pm_id FROM nu_project_members WHERE pm_project_id = ? AND pm_user_id = ?", [$importedProjectId, $userId]);
+                if (!$existingMember) {
+                    $db->insert('nu_project_members', [
+                        'pm_project_id' => $importedProjectId,
+                        'pm_user_id'    => $userId,
+                        'pm_role'       => 'owner'
+                    ]);
+                }
+                // Switch active project context to the newly imported project
+                ProjectContext::setId($importedProjectId);
+            }
+
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+
+            json_response([
+                'success' => true,
+                'project_id' => $importedProjectId,
+                'executed_statements' => $executedCount,
+                'message' => 'Project package successfully imported!'
+            ]);
+
+        } catch (\Throwable $e) {
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+            json_response(['success' => false, 'error' => 'Import failed: ' . $e->getMessage()], 500);
+        }
+        break;
+
     default:
         json_response(['success' => false, 'error' => 'Invalid action'], 400);
 }
