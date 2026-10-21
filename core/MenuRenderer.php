@@ -175,35 +175,6 @@ class NuMenuRenderer
                     ]);
                 }
 
-                // ── Self-healing: Fieldwork Fumigation Manager Menu Items ─────────
-                $fwModules = [
-                    ['target' => 'fieldwork_job_orders',  'label' => 'Job orders',        'order' => 1, 'icon' => 'forms'],
-                    ['target' => 'fieldwork_records',     'label' => 'Fumigation records','order' => 2, 'icon' => 'clipboard'],
-                    ['target' => 'fieldwork_certificates','label' => 'Certificates',       'order' => 3, 'icon' => 'file-text'],
-                    ['target' => 'fieldwork_clients',     'label' => 'Clients',            'order' => 4, 'icon' => 'users'],
-                ];
-                foreach ($fwModules as $fw) {
-                    $existsFw = $db->fetchOne("SELECT menu_id FROM nu_menus WHERE menu_target = ?", [$fw['target']]);
-                    if (!$existsFw) {
-                        $db->insert('nu_menus', [
-                            'menu_label'        => $fw['label'],
-                            'menu_type'         => 'module',
-                            'menu_target'       => $fw['target'],
-                            'menu_parent_id'    => 0,
-                            'menu_order'        => $fw['order'],
-                            'menu_roles'        => '',
-                            'menu_role_access'  => '[]',
-                            'menu_active'       => 1,
-                            'menu_icon'         => $fw['icon'],
-                            'menu_open_mode'    => 'inline|browse',
-                            'menu_browse_mode'  => 'inline',
-                            'menu_preview_mode' => 'inline',
-                            'menu_default_view' => 'browse',
-                            'project_id'        => $pid
-                        ]);
-                    }
-                }
-
                 $existsDev = $db->fetchOne("SELECT menu_id FROM nu_menus WHERE menu_target = 'developer_settings'");
                 if (!$existsDev) {
                     $adminGroup = $db->fetchOne("SELECT menu_id FROM nu_menus WHERE menu_label = 'Admin Tools' AND menu_type = 'group'");

@@ -5,69 +5,23 @@
 declare(strict_types=1);
 ?>
 <aside class="nu-sidebar" id="sidebar">
-    <div class="nu-sidebar-header" style="flex-direction: column; align-items: flex-start; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; width: 100%;">
-            <div style="background: #14b8a6; color: #fff; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
-            <div>
-                <div style="font-weight: 700; font-size: 15px; color: #f8fafc; line-height: 1.2;">fieldwork</div>
-                <div style="font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8;">FUMIGATION MANAGER</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Treatment Provider Badge -->
-    <div style="margin: 12px 12px 8px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px;">
-        <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">TREATMENT PROVIDER</div>
-        <div style="font-size: 12px; font-weight: 600; color: #e2e8f0; margin-top: 2px;">Allpest and hygiene solutions Pte ltd</div>
-        <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Provider ID • FJ0025MB</div>
-    </div>
-
-    <!-- Navigation Bar -->
-    <nav class="nu-nav">
-        <div style="margin:8px 8px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted,#888);padding:0 4px;">WORKSPACE</div>
-
-        <a href="#fieldwork_job_orders" class="nu-nav-item active" data-module="fieldwork_job_orders"
-           onclick="NuApp.loadModule('fieldwork_job_orders'); return false;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-            </svg>
-            <span>Job orders</span>
-        </a>
-
-        <a href="#fieldwork_records" class="nu-nav-item" data-module="fieldwork_records"
-           onclick="NuApp.loadModule('fieldwork_records'); return false;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            <span>Fumigation records</span>
-        </a>
-
-        <a href="#fieldwork_certificates" class="nu-nav-item" data-module="fieldwork_certificates"
-           onclick="NuApp.loadModule('fieldwork_certificates'); return false;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/>
-            </svg>
-            <span>Certificates</span>
-        </a>
-
-        <a href="#fieldwork_clients" class="nu-nav-item" data-module="fieldwork_clients"
-           onclick="NuApp.loadModule('fieldwork_clients'); return false;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-            </svg>
-            <span>Clients</span>
-        </a>
-
-        <?php if ($dynNav !== ''): ?>
-            <div style="margin:16px 8px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted,#888);padding:0 4px;">STUDIOX SYSTEM</div>
-            <?= $dynNav ?>
+    <div class="nu-sidebar-header">
+        <?php if ($customAppLogo !== ''): ?>
+            <img src="<?= h($customAppLogo) ?>" alt="Logo" class="nu-custom-logo" style="max-height: 32px; border-radius: 4px; margin-right: 8px;">
         <?php else: ?>
-        <!-- ══ Static fallback nav (shown until nu_menus is populated) ══ -->
+            <div class="nu-logo">nu</div>
+        <?php endif; ?>
+        <span class="nu-version" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="<?= h($customAppName) ?>"><?= h($customAppName) ?></span>
+    </div>
+
+    <?php if ($dynNav !== ''): ?>
+        <?= $dynNav ?>
+    <?php else: ?>
+    <!-- ══ Static fallback nav (shown until nu_menus is populated) ══ -->
+    <nav class="nu-nav">
 
         <!-- ── Main ── -->
-        <div style="margin:16px 8px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted,#888);padding:0 4px;">Main</div>
+        <div style="margin:12px 8px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted,#888);padding:0 4px;">Main</div>
         <a href="#dashboard" class="nu-nav-item" data-module="dashboard"
            onclick="NuApp.loadModule('dashboard'); return false;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
