@@ -224,16 +224,22 @@ function checkRequirement($name, $check, $required = true) {
                             '$1VARCHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY',
                             $sql
                         );
-                        // Also replace all foreign key column types referencing usr_id
-                        $fk_cols = [
+                        // Dynamically discover foreign key columns referencing nu_users (usr_id)
+                        $dynamic_cols = [];
+                        if (preg_match_all('/FOREIGN\s+KEY\s*\(\s*`([^`]+)`\s*\)\s*REFERENCES\s*`nu_users`/i', $sql, $fkMatches)) {
+                            $dynamic_cols = $fkMatches[1];
+                        }
+                        // Explicit fallback list including all user reference columns across schemas
+                        $fk_cols = array_unique(array_merge([
                             'umeta_user_id', 'token_user_id', 'usage_user_id', 'file_uploaded_by',
-                            'form_created_by', 'report_created_by', 'query_created_by', 'doc_created_by',
-                            'sig_user_id', 'event_user_id', 'ph_user_id', 'wf_created_by',
-                            'wfi_started_by', 'wfh_actor_id', 'errlog_user_id', 'audit_user_id',
-                            'widget_user_id'
-                        ];
+                            'pm_user_id', 'form_created_by', 'report_created_by', 'query_created_by',
+                            'doc_created_by', 'sig_user_id', 'event_user_id', 'ph_user_id',
+                            'wf_created_by', 'wfi_started_by', 'wfh_actor_id', 'errlog_user_id',
+                            'audit_user_id', 'widget_user_id'
+                        ], $dynamic_cols));
+
                         foreach ($fk_cols as $col) {
-                            $pattern = '/(`' . $col . '`\s+)INT(?:\(\d+\))?(?:\s+UNSIGNED)?/i';
+                            $pattern = '/(`' . preg_quote($col, '/') . '`\s+)INT(?:\(\d+\))?(?:\s+UNSIGNED)?/i';
                             $sql = preg_replace($pattern, '$1VARCHAR(36)', $sql);
                         }
                     }
