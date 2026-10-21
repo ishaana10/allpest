@@ -1,16 +1,16 @@
 <?php
-// nuBuilder Next - Setup / Installer
+// Nuvis StudioX - Setup / Installer
 // Run this file once to verify environment and create database
 
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
 
-if (file_exists(__DIR__ . '/config.local.php') || file_exists(__DIR__ . '/installed.lock')) {
-    http_response_code(403);
-    exit('Nuvis StudioX is already installed. Access denied to setup.php.');
-}
+require_once __DIR__ . '/core/AppVersion.php';
 
-$step = $_GET['step'] ?? 'check';
+$isLocked = file_exists(__DIR__ . '/installed.lock');
+$allowForce = isset($_GET['force']) && $_GET['force'] === '1';
+
+$step = $_GET['step'] ?? ($isLocked && !$allowForce ? 'locked' : 'check');
 $errors = [];
 $warnings = [];
 
@@ -34,7 +34,7 @@ function checkRequirement($name, $check, $required = true) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>nuBuilder Next - Setup</title>
+    <title>Nuvis StudioX - Setup</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/nubuilder-next.css">
     <style>
@@ -62,11 +62,25 @@ function checkRequirement($name, $check, $required = true) {
     <div class="setup-card">
         <div class="setup-brand">
             <div class="setup-logo">nu</div>
-            <h1>nuBuilder Next Setup</h1>
-            <p>Version 5.0.0 - Environment Check</p>
+            <h1>Nuvis StudioX Setup</h1>
+            <p>Version <?= htmlspecialchars(class_exists('AppVersion') ? AppVersion::get('version') : '5.0.2') ?> - Environment Check</p>
         </div>
 
-        <?php if ($step === 'check'): ?>
+        <?php if ($step === 'locked'): ?>
+        <div class="setup-step" style="text-align:center;">
+            <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
+            <h3>Application Already Installed</h3>
+            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px;line-height:1.5;">
+                Nuvis StudioX is already installed and configured on this server. <br>
+                If you wish to re-verify environment requirements or re-initialize the database, click below.
+            </p>
+            <div class="setup-actions" style="justify-content:center;">
+                <a href="index.php" class="nu-btn nu-btn-primary">Launch Application</a>
+                <a href="setup.php?force=1" class="nu-btn nu-btn-ghost">Re-run Setup &amp; Checks</a>
+            </div>
+        </div>
+
+        <?php elseif ($step === 'check'): ?>
         <div class="setup-step">
             <h3>System Requirements</h3>
             <div class="setup-checks">
@@ -135,7 +149,7 @@ function checkRequirement($name, $check, $required = true) {
                     <div>
                         <strong>UUID <span style="font-weight:400;font-size:12px;color:var(--text-secondary);">(VARCHAR 36)</span></strong>
                         <span>e.g. <code>550e8400-e29b-41d4-a716-446655440000</code><br>
-                        Recommended for nuBuilder Forte data transfer &amp; multi-instance migration.
+                        Recommended for Nuvis StudioX / nuBuilder Forte data transfer &amp; multi-instance migration.
                         Uses MySQL 8.0 <code>DEFAULT (UUID())</code> — globally unique across installations.</span>
                     </div>
                 </label>
@@ -319,6 +333,9 @@ function checkRequirement($name, $check, $required = true) {
                     try {
                         $pdo->exec("ALTER TABLE nu_menus ADD COLUMN menu_default_view VARCHAR(10) NOT NULL DEFAULT 'browse'");
                     } catch (PDOException $ignored) {}
+
+                    // Lock installation
+                    @file_put_contents(__DIR__ . '/installed.lock', 'Installed on ' . date('Y-m-d H:i:s'));
 
                     $idLabel = $userIdType === 'uuid' ? 'UUID — VARCHAR(36) with DEFAULT (UUID())' : 'Auto Increment — INT';
                     echo '<div class="setup-success">Database installed successfully!<br>User ID type: <strong>' . htmlspecialchars($idLabel) . '</strong></div>';
