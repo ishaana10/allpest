@@ -143,6 +143,11 @@ try {
 
             if (!empty($body['password'])) {
                 $update['usr_password'] = password_hash($body['password'], PASSWORD_BCRYPT);
+                $update['usr_password_changed_at'] = date('Y-m-d H:i:s');
+                $update['usr_must_change_password'] = 0;
+                if (isset($_SESSION['nu_user_id']) && (string)$_SESSION['nu_user_id'] === (string)$id) {
+                    unset($_SESSION['nu_must_change_password']);
+                }
             }
 
             $db->update('nu_users', $update, 'usr_id = :id', [':id' => $id]);

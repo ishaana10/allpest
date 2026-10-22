@@ -219,14 +219,17 @@ switch ($action) {
         $policy = loadPolicy($db);
         $expiry = (int)$policy['policy_expiry_days'];
         $result = ['expired'=>false,'warning'=>false,'days_remaining'=>null,'must_change'=>(bool)$user['usr_must_change_password']];
-        if ($expiry > 0 && $user['usr_password_changed_at']) {
-            $changed  = strtotime($user['usr_password_changed_at']);
-            $expireAt = $changed + ($expiry * 86400);
-            $now      = time();
-            $remaining = (int)(($expireAt - $now) / 86400);
-            $result['days_remaining'] = $remaining;
-            if ($remaining <= 0)  { $result['expired'] = true; }
-            elseif ($remaining <= (int)$policy['policy_expiry_warning_days']) { $result['warning'] = true; }
+        if ($expiry > 0) {
+            $changedStr = $user['usr_password_changed_at'] ?? '';
+            $changed    = !empty($changedStr) ? strtotime($changedStr) : 0;
+            if ($changed > 0) {
+                $expireAt = $changed + ($expiry * 86400);
+                $now      = time();
+                $remaining = (int)(($expireAt - $now) / 86400);
+                $result['days_remaining'] = $remaining;
+                if ($remaining <= 0)  { $result['expired'] = true; }
+                elseif ($remaining <= (int)$policy['policy_expiry_warning_days']) { $result['warning'] = true; }
+            }
         }
         echo json_encode(['success'=>true] + $result);
         break;
