@@ -1020,12 +1020,14 @@ INSERT IGNORE INTO `nu_workflow_transitions` (`wft_id`, `wft_wf_id`, `wft_from_i
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==============================================================================
+
+-- ==============================================================================
 -- ALLPEST ONLINE PORTAL - DOMAIN SCHEMA, METADATA & BISECURITY SEED DATA
 -- ==============================================================================
 
 -- 1. Project Registration
-INSERT IGNORE INTO `nu_projects` (`prj_id`, `prj_name`, `prj_code`, `prj_description`, `prj_provider_name`, `prj_provider_id`) VALUES
-(100, 'All pest Online Portal', 'allpest_portal', 'Complete Pest Control & Biosecurity Service Management System for Fiji Ports & Exporters', 'Allpest & Hygiene Solutions Pte Ltd', 'FJ0025MB');
+INSERT IGNORE INTO `nu_projects` (`project_id`, `project_code`, `project_name`, `project_description`, `project_is_default`, `project_active`) VALUES
+(100, 'allpest_portal', 'All pest Online Portal', 'Complete Pest Control & Biosecurity Service Management System for Fiji Ports & Exporters (Allpest & Hygiene Solutions Pte Ltd, FJ0025MB)', 0, 1);
 
 -- 2. Domain Schema Tables
 CREATE TABLE IF NOT EXISTS `ap_dashboard_kpis` (
@@ -1234,42 +1236,42 @@ CREATE TABLE IF NOT EXISTS `ap_audit_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. Studio Forms Registration
-INSERT IGNORE INTO `nu_forms` (`frm_id`, `project_id`, `frm_title`, `frm_table`, `frm_icon`, `frm_description`) VALUES
-('frm_dashboard', 100, 'Dashboard & KPIs', 'ap_dashboard_kpis', 'fas fa-chart-line', 'Form for Dashboard & KPIs'),
-('frm_job_orders', 100, 'Job Orders Management', 'ap_job_orders', 'fas fa-clipboard-list', 'Form for Job Orders Management'),
-('frm_cargo_manifest', 100, 'Cargo Container Manifest', 'ap_cargo_manifest', 'fas fa-boxes', 'Form for Cargo Container Manifest'),
-('frm_risk_assessment', 100, 'Site Risk Assessment', 'ap_risk_assessments', 'fas fa-user-shield', 'Form for Site Risk Assessment'),
-('frm_fumigation_logs', 100, 'Fumigation & ROF Clearance Log', 'ap_fumigation_logs', 'fas fa-smog', 'Form for Fumigation & ROF Clearance Log'),
-('frm_gas_readings', 100, 'Gas Dosing Hourly Log', 'ap_gas_readings', 'fas fa-vial', 'Form for Gas Dosing Hourly Log'),
-('frm_certificates', 100, 'Certificates & Compliance', 'ap_certificates', 'fas fa-certificate', 'Form for Certificates & Compliance'),
-('frm_clients', 100, 'Client / Exporter Directory', 'ap_clients', 'fas fa-address-book', 'Form for Client Directory'),
-('frm_proposals', 100, 'Treatment & Service Proposals', 'ap_proposals', 'fas fa-file-contract', 'Form for Proposals'),
-('frm_inspection_reports', 100, 'Pest Inspection & Field Reports', 'ap_inspection_reports', 'fas fa-bug', 'Form for Inspection Reports'),
-('frm_inspection_zones', 100, 'Inspection Zones & Treatments', 'ap_inspection_zones', 'fas fa-map-marked-alt', 'Form for Inspection Zones'),
-('frm_invoices', 100, 'Billing & Invoices', 'ap_invoices', 'fas fa-file-invoice-dollar', 'Form for Invoicing'),
-('frm_invoice_items', 100, 'Invoice Line Items', 'ap_invoice_items', 'fas fa-list', 'Form for Line Items'),
-('frm_schedules', 100, 'Service Schedules & Timetable', 'ap_schedules', 'fas fa-calendar-alt', 'Form for Schedules'),
-('frm_inventory', 100, 'Chemical & Stock Inventory', 'ap_chemical_inventory', 'fas fa-flask', 'Form for Chemical Inventory'),
-('frm_audit_logs', 100, 'Compliance & System Audit Logs', 'ap_audit_logs', 'fas fa-history', 'Form for Audit Logs');
+INSERT IGNORE INTO `nu_forms` (`project_id`, `form_code`, `form_name`, `form_table`, `form_description`, `form_type`, `form_active`) VALUES
+(100, 'frm_dashboard', 'Dashboard & KPIs', 'ap_dashboard_kpis', 'Form for Dashboard & KPIs', 'main', 1),
+(100, 'frm_job_orders', 'Job Orders Management', 'ap_job_orders', 'Form for Job Orders Management', 'main', 1),
+(100, 'frm_cargo_manifest', 'Cargo Container Manifest', 'ap_cargo_manifest', 'Form for Cargo Container Manifest', 'subform', 1),
+(100, 'frm_risk_assessment', 'Site Risk Assessment', 'ap_risk_assessments', 'Form for Site Risk Assessment', 'main', 1),
+(100, 'frm_fumigation_logs', 'Fumigation & ROF Clearance Log', 'ap_fumigation_logs', 'Form for Fumigation & ROF Clearance Log', 'main', 1),
+(100, 'frm_gas_readings', 'Gas Dosing Hourly Log', 'ap_gas_readings', 'Form for Gas Dosing Hourly Log', 'subform', 1),
+(100, 'frm_certificates', 'Certificates & Compliance', 'ap_certificates', 'Form for Certificates & Compliance', 'main', 1),
+(100, 'frm_clients', 'Client / Exporter Directory', 'ap_clients', 'Form for Client Directory', 'main', 1),
+(100, 'frm_proposals', 'Treatment & Service Proposals', 'ap_proposals', 'Form for Proposals', 'main', 1),
+(100, 'frm_inspection_reports', 'Pest Inspection & Field Reports', 'ap_inspection_reports', 'Form for Inspection Reports', 'main', 1),
+(100, 'frm_inspection_zones', 'Inspection Zones & Treatments', 'ap_inspection_zones', 'Form for Inspection Zones', 'subform', 1),
+(100, 'frm_invoices', 'Billing & Invoices', 'ap_invoices', 'Form for Invoicing', 'main', 1),
+(100, 'frm_invoice_items', 'Invoice Line Items', 'ap_invoice_items', 'Form for Line Items', 'subform', 1),
+(100, 'frm_schedules', 'Service Schedules & Timetable', 'ap_schedules', 'Form for Schedules', 'main', 1),
+(100, 'frm_inventory', 'Chemical & Stock Inventory', 'ap_chemical_inventory', 'Form for Chemical Inventory', 'main', 1),
+(100, 'frm_audit_logs', 'Compliance & System Audit Logs', 'ap_audit_logs', 'Form for Audit Logs', 'main', 1);
 
 -- 4. Studio Navigation Menus Registration
-INSERT IGNORE INTO `nu_menus` (`mnu_id`, `project_id`, `mnu_title`, `mnu_type`, `mnu_target`, `mnu_icon`, `mnu_order`) VALUES
-('mnu_allpest_1', 100, 'Workspace / Portal', 'url', '#allpest_portal', 'fas fa-th-large', 1),
-('mnu_allpest_2', 100, 'Job Orders', 'form', 'frm_job_orders', 'fas fa-clipboard-list', 2),
-('mnu_allpest_3', 100, 'Risk Assessment', 'form', 'frm_risk_assessment', 'fas fa-shield-alt', 3),
-('mnu_allpest_4', 100, 'Fumigation Records', 'form', 'frm_fumigation_logs', 'fas fa-smog', 4),
-('mnu_allpest_5', 100, 'Certificates', 'form', 'frm_certificates', 'fas fa-certificate', 5),
-('mnu_allpest_6', 100, 'Clients', 'form', 'frm_clients', 'fas fa-users', 6),
-('mnu_allpest_7', 100, 'Proposals', 'form', 'frm_proposals', 'fas fa-file-contract', 7),
-('mnu_allpest_8', 100, 'Inspection Reports', 'form', 'frm_inspection_reports', 'fas fa-bug', 8),
-('mnu_allpest_9', 100, 'Invoicing & Billing', 'form', 'frm_invoices', 'fas fa-file-invoice-dollar', 9),
-('mnu_allpest_10', 100, 'Service Schedules', 'form', 'frm_schedules', 'fas fa-calendar-alt', 10),
-('mnu_allpest_11', 100, 'Chemical Stock', 'form', 'frm_inventory', 'fas fa-flask', 11),
-('mnu_allpest_12', 100, 'Audit Logs', 'form', 'frm_audit_logs', 'fas fa-history', 12);
+INSERT IGNORE INTO `nu_menus` (`project_id`, `menu_label`, `menu_type`, `menu_target`, `menu_icon`, `menu_order`, `menu_active`) VALUES
+(100, 'Workspace / Portal', 'module', 'allpest_portal', 'fas fa-th-large', 1, 1),
+(100, 'Job Orders', 'form', 'frm_job_orders', 'fas fa-clipboard-list', 2, 1),
+(100, 'Risk Assessment', 'form', 'frm_risk_assessment', 'fas fa-shield-alt', 3, 1),
+(100, 'Fumigation Records', 'form', 'frm_fumigation_logs', 'fas fa-smog', 4, 1),
+(100, 'Certificates', 'form', 'frm_certificates', 'fas fa-certificate', 5, 1),
+(100, 'Clients', 'form', 'frm_clients', 'fas fa-users', 6, 1),
+(100, 'Proposals', 'form', 'frm_proposals', 'fas fa-file-contract', 7, 1),
+(100, 'Inspection Reports', 'form', 'frm_inspection_reports', 'fas fa-bug', 8, 1),
+(100, 'Invoicing & Billing', 'form', 'frm_invoices', 'fas fa-file-invoice-dollar', 9, 1),
+(100, 'Service Schedules', 'form', 'frm_schedules', 'fas fa-calendar-alt', 10, 1),
+(100, 'Chemical Stock', 'form', 'frm_inventory', 'fas fa-flask', 11, 1),
+(100, 'Audit Logs', 'form', 'frm_audit_logs', 'fas fa-history', 12, 1);
 
 -- 5. Seed Biosecurity Sample Data
 INSERT IGNORE INTO `ap_dashboard_kpis` (`kpi_id`, `kpi_title`, `kpi_value`, `kpi_subtext`, `kpi_category`) VALUES
-('kpi_1', 'Total Directory / Accounts', '28', 'All active directory accounts sync\'d', 'Jobs'),
+('kpi_1', 'Total Directory / Accounts', '28', 'All active directory accounts sync''d', 'Jobs'),
 ('kpi_2', 'Authorized Fumigators', '6 Certified', 'BAF / AFAS Accredited Officers', 'Fumigation'),
 ('kpi_3', 'Field Technicians', '11 Active', 'Stationed in Lautoka & Suva Ports', 'Jobs'),
 ('kpi_4', 'Client Exporters', '9 Exporters', 'Restricted Portal Access Only', 'Compliance'),
@@ -1283,5 +1285,5 @@ INSERT IGNORE INTO `ap_certificates` (`cert_id`, `cert_number`, `job_id`, `cert_
 ('cert_101', 'CERT-FUM-2026-084', 'job_101', 'Official Fumigation Certificate', 'Pacific Timber Exports Pte Ltd', '2026-05-28', '2026-11-28', 'BAF-AFAS-FJ0025MB', 'Active', 'RSA-4096-Encrypted-Sig-Token');
 
 -- 6. Initial Version Snapshot Tracking
-INSERT IGNORE INTO `nu_project_versions` (`pv_id`, `pv_project_id`, `pv_version_tag`, `pv_description`, `pv_snapshot_data`, `pv_created_by`, `pv_created_at`) VALUES
-(100, 100, 'v1.0.0', 'Initial release of Allpest Online Portal natively integrated in Nuvis Studio with 12 modules, forms, menus, and biosecurity sample data.', '{"version":"v1.0.0","modules":12}', 'usr_admin', NOW());
+INSERT IGNORE INTO `nu_project_versions` (`pv_id`, `pv_project_id`, `pv_version_tag`, `pv_description`, `pv_snapshot_data`, `pv_created_at`) VALUES
+(100, 100, 'v1.0.0', 'Initial release of Allpest Online Portal natively integrated in Nuvis Studio with 12 modules, forms, menus, and biosecurity sample data.', '{"version":"v1.0.0","modules":12}', NOW());

@@ -16,7 +16,7 @@ $db = Database::getInstance();
 $driver = $db->getDriver();
 
 // Fetch Allpest project ID
-$projectId = (int)($db->fetchValue("SELECT prj_id FROM nu_projects WHERE prj_code = 'allpest_portal'") ?? 1);
+$projectId = (int)($db->fetchValue("SELECT project_id FROM nu_projects WHERE project_code = 'allpest_portal'") ?? 1);
 
 // Fetch active dashboard KPIs
 $kpis = $db->fetchAll("SELECT * FROM ap_dashboard_kpis ORDER BY kpi_id ASC") ?? [];
