@@ -105,6 +105,13 @@ class NuFormRenderer {
                 $html .= $this->renderTabContainer($item, $record, $readonly, $formCode);
             } elseif ($type === 'group') {
                 $html .= $this->renderGroup($item, $record, $readonly);
+            } elseif ($type === 'row' || $type === 'section') {
+                $childItems = $item['children'] ?? ($item['fields'] ?? []);
+                $html .= '<div class="nu-form-grid">';
+                foreach ($childItems as $child) {
+                    $html .= $this->renderField($child, $record, $readonly);
+                }
+                $html .= '</div>';
             } else {
                 // Plain field — wrap in the standard grid
                 $html .= '<div class="nu-form-grid">';
@@ -574,6 +581,9 @@ class NuFormRenderer {
             } elseif ($type === 'group') {
                 $groupFields = $this->collectGroupFields($item);
                 $names = array_merge($names, $this->collectFieldNames($groupFields));
+            } elseif ($type === 'row' || $type === 'section') {
+                $childItems = $item['children'] ?? ($item['fields'] ?? []);
+                $names = array_merge($names, $this->collectFieldNames($childItems));
             } elseif (!in_array($type, ['divider','html','subform','repeater'], true)) {
                 if (!empty($item['name'])) $names[] = $item['name'];
             }
