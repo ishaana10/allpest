@@ -1018,3 +1018,270 @@ INSERT IGNORE INTO `nu_workflow_transitions` (`wft_id`, `wft_wf_id`, `wft_from_i
 
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ==============================================================================
+-- ALLPEST ONLINE PORTAL - DOMAIN SCHEMA, METADATA & BISECURITY SEED DATA
+-- ==============================================================================
+
+-- 1. Project Registration
+INSERT IGNORE INTO `nu_projects` (`prj_id`, `prj_name`, `prj_code`, `prj_description`, `prj_provider_name`, `prj_provider_id`) VALUES
+(100, 'All pest Online Portal', 'allpest_portal', 'Complete Pest Control & Biosecurity Service Management System for Fiji Ports & Exporters', 'Allpest & Hygiene Solutions Pte Ltd', 'FJ0025MB');
+
+-- 2. Domain Schema Tables
+CREATE TABLE IF NOT EXISTS `ap_dashboard_kpis` (
+    `kpi_id` VARCHAR(36) PRIMARY KEY,
+    `kpi_title` VARCHAR(100),
+    `kpi_value` VARCHAR(50),
+    `kpi_subtext` VARCHAR(150),
+    `kpi_category` VARCHAR(50),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_job_orders` (
+    `job_id` VARCHAR(36) PRIMARY KEY,
+    `job_number` VARCHAR(50) UNIQUE,
+    `client_name` VARCHAR(150),
+    `client_exporter_code` VARCHAR(50),
+    `port_of_origin` VARCHAR(100),
+    `port_of_destination` VARCHAR(100),
+    `vessel_aircraft` VARCHAR(100),
+    `voyage_flight_no` VARCHAR(50),
+    `target_pest` VARCHAR(100),
+    `commodity_description` TEXT,
+    `treatment_type` VARCHAR(100),
+    `scheduled_date` DATE,
+    `status` VARCHAR(50) DEFAULT 'Scheduled',
+    `assigned_technician` VARCHAR(100),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_cargo_manifest` (
+    `item_id` VARCHAR(36) PRIMARY KEY,
+    `job_id` VARCHAR(36),
+    `container_no` VARCHAR(50),
+    `seal_no` VARCHAR(50),
+    `cargo_type` VARCHAR(100),
+    `volume_m3` DECIMAL(10,2),
+    `weight_kg` DECIMAL(10,2),
+    `status` VARCHAR(50) DEFAULT 'Pending Dosing'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_risk_assessments` (
+    `assessment_id` VARCHAR(36) PRIMARY KEY,
+    `job_id` VARCHAR(36),
+    `site_location` VARCHAR(150),
+    `inspector_name` VARCHAR(100),
+    `assessment_date` DATE,
+    `structural_integrity` VARCHAR(20),
+    `ventilation_status` VARCHAR(20),
+    `gas_leak_prevention` VARCHAR(20),
+    `ppe_compliant` VARCHAR(20),
+    `exclusion_zone_set` VARCHAR(20),
+    `risk_level` VARCHAR(20) DEFAULT 'Low',
+    `approval_status` VARCHAR(50) DEFAULT 'Approved',
+    `notes` TEXT,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_fumigation_logs` (
+    `log_id` VARCHAR(36) PRIMARY KEY,
+    `job_id` VARCHAR(36),
+    `fumigant_chemical` VARCHAR(100),
+    `dosage_rate` VARCHAR(50),
+    `exposure_period_hrs` DECIMAL(5,2),
+    `initial_gas_conc` VARCHAR(50),
+    `final_gas_conc` VARCHAR(50),
+    `ambient_temp_c` DECIMAL(5,2),
+    `ventilation_start_time` DATETIME,
+    `clearance_time` DATETIME,
+    `rof_status` VARCHAR(50) DEFAULT 'Pending Clearance',
+    `baf_officer_name` VARCHAR(100),
+    `baf_officer_license` VARCHAR(100),
+    `digital_signature_token` VARCHAR(255),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_gas_readings` (
+    `reading_id` VARCHAR(36) PRIMARY KEY,
+    `log_id` VARCHAR(36),
+    `reading_timestamp` DATETIME,
+    `sampling_location` VARCHAR(100),
+    `target_conc_g_m3` DECIMAL(8,2),
+    `measured_conc_g_m3` DECIMAL(8,2),
+    `temp_c` DECIMAL(5,2),
+    `passed` INT DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_certificates` (
+    `cert_id` VARCHAR(36) PRIMARY KEY,
+    `cert_number` VARCHAR(50) UNIQUE,
+    `job_id` VARCHAR(36),
+    `cert_type` VARCHAR(100),
+    `client_name` VARCHAR(150),
+    `issue_date` DATE,
+    `expiry_date` DATE,
+    `baf_accreditation_code` VARCHAR(100),
+    `status` VARCHAR(50) DEFAULT 'Active',
+    `pdf_signature_hash` VARCHAR(255),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_clients` (
+    `client_id` VARCHAR(36) PRIMARY KEY,
+    `client_name` VARCHAR(150),
+    `exporter_code` VARCHAR(50) UNIQUE,
+    `contact_person` VARCHAR(100),
+    `email` VARCHAR(150),
+    `phone` VARCHAR(50),
+    `address` TEXT,
+    `port_location` VARCHAR(100),
+    `status` VARCHAR(20) DEFAULT 'Active',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_proposals` (
+    `proposal_id` VARCHAR(36) PRIMARY KEY,
+    `proposal_no` VARCHAR(50) UNIQUE,
+    `client_id` VARCHAR(36),
+    `target_pest` VARCHAR(100),
+    `proposed_chemical` VARCHAR(100),
+    `service_frequency` VARCHAR(50),
+    `estimated_cost` DECIMAL(12,2),
+    `status` VARCHAR(50) DEFAULT 'Draft',
+    `valid_until` DATE,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_inspection_reports` (
+    `report_id` VARCHAR(36) PRIMARY KEY,
+    `report_no` VARCHAR(50) UNIQUE,
+    `job_id` VARCHAR(36),
+    `inspection_date` DATE,
+    `technician_name` VARCHAR(100),
+    `pest_findings` TEXT,
+    `overall_infestation_level` VARCHAR(50),
+    `recommendations` TEXT,
+    `next_reinspection_date` DATE,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_inspection_zones` (
+    `zone_id` VARCHAR(36) PRIMARY KEY,
+    `report_id` VARCHAR(36),
+    `zone_name` VARCHAR(100),
+    `pest_type` VARCHAR(100),
+    `activity_level` VARCHAR(50),
+    `chemical_applied` VARCHAR(100),
+    `qty_applied` VARCHAR(50)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_invoices` (
+    `invoice_id` VARCHAR(36) PRIMARY KEY,
+    `invoice_no` VARCHAR(50) UNIQUE,
+    `job_id` VARCHAR(36),
+    `client_name` VARCHAR(150),
+    `issue_date` DATE,
+    `due_date` DATE,
+    `subtotal` DECIMAL(12,2),
+    `vat_amount` DECIMAL(12,2),
+    `total_amount` DECIMAL(12,2),
+    `payment_status` VARCHAR(50) DEFAULT 'Pending',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_invoice_items` (
+    `item_id` VARCHAR(36) PRIMARY KEY,
+    `invoice_id` VARCHAR(36),
+    `description` TEXT,
+    `quantity` DECIMAL(10,2),
+    `unit_price` DECIMAL(10,2),
+    `amount` DECIMAL(12,2)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_schedules` (
+    `schedule_id` VARCHAR(36) PRIMARY KEY,
+    `job_id` VARCHAR(36),
+    `title` VARCHAR(150),
+    `assigned_tech` VARCHAR(100),
+    `start_time` DATETIME,
+    `end_time` DATETIME,
+    `status` VARCHAR(50) DEFAULT 'Scheduled',
+    `port_station` VARCHAR(100),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_chemical_inventory` (
+    `item_id` VARCHAR(36) PRIMARY KEY,
+    `chemical_name` VARCHAR(100),
+    `active_ingredient` VARCHAR(100),
+    `batch_number` VARCHAR(50),
+    `quantity_on_hand` DECIMAL(10,2),
+    `unit_of_measure` VARCHAR(20),
+    `expiry_date` DATE,
+    `reorder_level` DECIMAL(10,2),
+    `sds_document_url` VARCHAR(255),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ap_audit_logs` (
+    `log_id` VARCHAR(36) PRIMARY KEY,
+    `user_name` VARCHAR(100),
+    `action_type` VARCHAR(50),
+    `entity_affected` VARCHAR(100),
+    `details` TEXT,
+    `ip_address` VARCHAR(50),
+    `timestamp` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3. Studio Forms Registration
+INSERT IGNORE INTO `nu_forms` (`frm_id`, `project_id`, `frm_title`, `frm_table`, `frm_icon`, `frm_description`) VALUES
+('frm_dashboard', 100, 'Dashboard & KPIs', 'ap_dashboard_kpis', 'fas fa-chart-line', 'Form for Dashboard & KPIs'),
+('frm_job_orders', 100, 'Job Orders Management', 'ap_job_orders', 'fas fa-clipboard-list', 'Form for Job Orders Management'),
+('frm_cargo_manifest', 100, 'Cargo Container Manifest', 'ap_cargo_manifest', 'fas fa-boxes', 'Form for Cargo Container Manifest'),
+('frm_risk_assessment', 100, 'Site Risk Assessment', 'ap_risk_assessments', 'fas fa-user-shield', 'Form for Site Risk Assessment'),
+('frm_fumigation_logs', 100, 'Fumigation & ROF Clearance Log', 'ap_fumigation_logs', 'fas fa-smog', 'Form for Fumigation & ROF Clearance Log'),
+('frm_gas_readings', 100, 'Gas Dosing Hourly Log', 'ap_gas_readings', 'fas fa-vial', 'Form for Gas Dosing Hourly Log'),
+('frm_certificates', 100, 'Certificates & Compliance', 'ap_certificates', 'fas fa-certificate', 'Form for Certificates & Compliance'),
+('frm_clients', 100, 'Client / Exporter Directory', 'ap_clients', 'fas fa-address-book', 'Form for Client Directory'),
+('frm_proposals', 100, 'Treatment & Service Proposals', 'ap_proposals', 'fas fa-file-contract', 'Form for Proposals'),
+('frm_inspection_reports', 100, 'Pest Inspection & Field Reports', 'ap_inspection_reports', 'fas fa-bug', 'Form for Inspection Reports'),
+('frm_inspection_zones', 100, 'Inspection Zones & Treatments', 'ap_inspection_zones', 'fas fa-map-marked-alt', 'Form for Inspection Zones'),
+('frm_invoices', 100, 'Billing & Invoices', 'ap_invoices', 'fas fa-file-invoice-dollar', 'Form for Invoicing'),
+('frm_invoice_items', 100, 'Invoice Line Items', 'ap_invoice_items', 'fas fa-list', 'Form for Line Items'),
+('frm_schedules', 100, 'Service Schedules & Timetable', 'ap_schedules', 'fas fa-calendar-alt', 'Form for Schedules'),
+('frm_inventory', 100, 'Chemical & Stock Inventory', 'ap_chemical_inventory', 'fas fa-flask', 'Form for Chemical Inventory'),
+('frm_audit_logs', 100, 'Compliance & System Audit Logs', 'ap_audit_logs', 'fas fa-history', 'Form for Audit Logs');
+
+-- 4. Studio Navigation Menus Registration
+INSERT IGNORE INTO `nu_menus` (`mnu_id`, `project_id`, `mnu_title`, `mnu_type`, `mnu_target`, `mnu_icon`, `mnu_order`) VALUES
+('mnu_allpest_1', 100, 'Workspace / Portal', 'url', '#allpest_portal', 'fas fa-th-large', 1),
+('mnu_allpest_2', 100, 'Job Orders', 'form', 'frm_job_orders', 'fas fa-clipboard-list', 2),
+('mnu_allpest_3', 100, 'Risk Assessment', 'form', 'frm_risk_assessment', 'fas fa-shield-alt', 3),
+('mnu_allpest_4', 100, 'Fumigation Records', 'form', 'frm_fumigation_logs', 'fas fa-smog', 4),
+('mnu_allpest_5', 100, 'Certificates', 'form', 'frm_certificates', 'fas fa-certificate', 5),
+('mnu_allpest_6', 100, 'Clients', 'form', 'frm_clients', 'fas fa-users', 6),
+('mnu_allpest_7', 100, 'Proposals', 'form', 'frm_proposals', 'fas fa-file-contract', 7),
+('mnu_allpest_8', 100, 'Inspection Reports', 'form', 'frm_inspection_reports', 'fas fa-bug', 8),
+('mnu_allpest_9', 100, 'Invoicing & Billing', 'form', 'frm_invoices', 'fas fa-file-invoice-dollar', 9),
+('mnu_allpest_10', 100, 'Service Schedules', 'form', 'frm_schedules', 'fas fa-calendar-alt', 10),
+('mnu_allpest_11', 100, 'Chemical Stock', 'form', 'frm_inventory', 'fas fa-flask', 11),
+('mnu_allpest_12', 100, 'Audit Logs', 'form', 'frm_audit_logs', 'fas fa-history', 12);
+
+-- 5. Seed Biosecurity Sample Data
+INSERT IGNORE INTO `ap_dashboard_kpis` (`kpi_id`, `kpi_title`, `kpi_value`, `kpi_subtext`, `kpi_category`) VALUES
+('kpi_1', 'Total Directory / Accounts', '28', 'All active directory accounts sync\'d', 'Jobs'),
+('kpi_2', 'Authorized Fumigators', '6 Certified', 'BAF / AFAS Accredited Officers', 'Fumigation'),
+('kpi_3', 'Field Technicians', '11 Active', 'Stationed in Lautoka & Suva Ports', 'Jobs'),
+('kpi_4', 'Client Exporters', '9 Exporters', 'Restricted Portal Access Only', 'Compliance'),
+('kpi_5', 'Active Jobs', '14 Active', '4 Under Venting, 2 Scheduled Today', 'Jobs'),
+('kpi_6', 'Compliance Rate', '99.4%', 'AFAS / BAF Live Compliance Audit', 'Compliance');
+
+INSERT IGNORE INTO `ap_job_orders` (`job_id`, `job_number`, `client_name`, `client_exporter_code`, `port_of_origin`, `port_of_destination`, `vessel_aircraft`, `voyage_flight_no`, `target_pest`, `treatment_type`, `scheduled_date`, `status`, `assigned_technician`, `commodity_description`) VALUES
+('job_101', 'JOB-2026-0841', 'Pacific Timber Exports Pte Ltd', 'EXP-FJ-8821', 'Lautoka Port, Fiji', 'Port of Sydney, Australia', 'MV Pacific Trader', 'V.2026-12', 'Wood Borers', 'Fumigation (Methyl Bromide)', '2026-05-28', 'In Progress', 'Rajesh Sharma', '40ft Sawn Hardwood Timber Packages (AFAS Compliant Stacking)');
+
+INSERT IGNORE INTO `ap_certificates` (`cert_id`, `cert_number`, `job_id`, `cert_type`, `client_name`, `issue_date`, `expiry_date`, `baf_accreditation_code`, `status`, `pdf_signature_hash`) VALUES
+('cert_101', 'CERT-FUM-2026-084', 'job_101', 'Official Fumigation Certificate', 'Pacific Timber Exports Pte Ltd', '2026-05-28', '2026-11-28', 'BAF-AFAS-FJ0025MB', 'Active', 'RSA-4096-Encrypted-Sig-Token');
+
+-- 6. Initial Version Snapshot Tracking
+INSERT IGNORE INTO `nu_project_versions` (`pv_id`, `pv_project_id`, `pv_version_tag`, `pv_description`, `pv_snapshot_data`, `pv_created_by`, `pv_created_at`) VALUES
+(100, 100, 'v1.0.0', 'Initial release of Allpest Online Portal natively integrated in Nuvis Studio with 12 modules, forms, menus, and biosecurity sample data.', '{"version":"v1.0.0","modules":12}', 'usr_admin', NOW());
