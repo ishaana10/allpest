@@ -450,7 +450,7 @@ function nu_current_user_is_admin() {
         }
         // 2. Fallback: check $_SESSION directly
         $sessionRole = strtolower((string)(
-            $_SESSION['usr_role'] ?? $_SESSION['role'] ?? $_SESSION['access_level'] ?? ''
+            $_SESSION['nu_role'] ?? $_SESSION['usr_role'] ?? $_SESSION['role'] ?? $_SESSION['access_level'] ?? ''
         ));
         $result = in_array($sessionRole, ['admin', 'globeadmin'], true);
     } catch (Throwable $e) {
@@ -1773,7 +1773,11 @@ function nu_render_form_html($form, $record = [], $recordId = null) {
         }
     }
 
+    $formId = $form[$c['id']] ?? '';
     $html .= '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:1px solid #eee;">';
+    if (nu_current_user_is_admin() && !empty($formId)) {
+        $html .= '<button type="button" class="nu-btn nu-btn-ghost" onclick="editForm(\'' . nu_attr((string)$formId) . '\')" style="color:#0284c7;font-weight:600;margin-right:auto;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Form Layout</button>';
+    }
     $html .= '<button type="button" class="nu-btn nu-btn-ghost" onclick="closeNuForm(this)">Cancel</button>';
     $html .= '<button type="submit" class="nu-btn nu-btn-primary">Save</button>';
     $html .= '</div></form>';
