@@ -97,11 +97,6 @@ function nu_get_lookup_options(NuDatabase $db, string $table, string $field): ar
                         data-meta='<?php echo htmlspecialchars(json_encode($customValues), ENT_QUOTES); ?>'>
                         ✎ Edit
                     </button>
-                    <button class="nu-btn nu-btn-secondary nu-btn-sm"
-                        style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;"
-                        onclick="Users.openRoleClearanceModal('<?php echo $u['usr_id']; ?>', '<?php echo htmlspecialchars($u['usr_username']); ?>')">
-                        🛡 Assign Clearance
-                    </button>
                     <?php endif; ?>
                     <?php if ($auth->hasPermission('users.delete') && $u['usr_username'] !== 'globeadmin'): ?>
                     <button class="nu-btn nu-btn-danger nu-btn-sm"
@@ -177,157 +172,6 @@ function nu_get_lookup_options(NuDatabase $db, string $table, string $field): ar
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="nu-btn nu-btn-ghost" onclick="Users.closeModal()">Cancel</button>
       <button class="nu-btn nu-btn-primary" onclick="Users.saveUser()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ ASSIGN SYSTEM ROLE & UPGRADE CLEARANCE MODAL ══════════════════════════ -->
-<div id="roleClearanceModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(2px);z-index:10002;align-items:center;justify-content:center;">
-  <div style="background:#ffffff;border-radius:16px;padding:32px;width:95%;max-width:820px;max-height:92vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.25);border:1px solid #e2e8f0;font-family:'Inter',sans-serif;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;">RBAC V2.4</span>
-        <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;">BAF / AFAS PROTOCOL</span>
-        <span style="font-size:11px;color:#64748b;font-weight:500;">REF: CR-ROLE-2026-084</span>
-      </div>
-      <button onclick="Users.closeRoleClearanceModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;padding:0;">✕</button>
-    </div>
-
-    <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 6px 0;">Assign System Role &amp; Upgrade Clearance: <span id="rcModalUserName">Savenaca Tubuna</span></h2>
-    <p style="font-size:13px;color:#64748b;margin:0 0 24px 0;">Modify operational security privileges, statutory biosecurity signing authority, and port accreditation scopes for this field officer.</p>
-
-    <!-- Officer Profile Card -->
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:16px;">
-        <div style="width:52px;height:52px;border-radius:12px;background:#10b981;color:#ffffff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">ST</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <strong style="font-size:16px;color:#0f172a;" id="rcCardName">Savenaca Tubuna</strong>
-            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:9999px;background:#ecfdf5;color:#047857;">• BAF ID: #TECH-FJ-109</span>
-          </div>
-          <div style="font-size:13px;color:#475569;margin-top:2px;" id="rcCardEmail">s.tubuna@allpest.com.fj • Station: Lautoka Terminal / Wharf Berth 2</div>
-          <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Biosecurity Authority of Fiji Master Register Active</div>
-        </div>
-      </div>
-      <div style="background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;padding:10px 16px;text-align:center;display:flex;align-items:center;gap:16px;">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;">Current Clearance</div>
-          <div style="font-size:13px;font-weight:700;color:#0f172a;">Level 2 Field</div>
-        </div>
-        <div style="color:#10b981;font-size:18px;">➔</div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#047857;text-transform:uppercase;">Target Clearance</div>
-          <div style="font-size:13px;font-weight:700;color:#047857;">Level 4 Statutory</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Role Selection -->
-    <div style="margin-bottom:24px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <label style="font-size:13px;font-weight:600;color:#0f172a;">Select Target System Role <span style="color:#ef4444;">*</span></label>
-        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">Newly Created Custom Role</span>
-      </div>
-      <div style="border:2px solid #10b981;border-radius:12px;padding:16px;background:#ffffff;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-          <div style="width:36px;height:36px;border-radius:8px;background:#ecfdf5;color:#059669;display:flex;align-items:center;justify-content:center;font-size:18px;">🛡</div>
-          <div style="flex:1;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <strong style="font-size:15px;color:#0f172a;">Senior Port Operations Inspector &amp; Lead Certifier</strong>
-              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:#475569;">ROLE_PORT_SR_CERT</span>
-            </div>
-            <div style="font-size:12px;color:#64748b;">Level 4 Statutory Sign-off Authority • Biosecurity Border Division</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;font-size:12px;margin-bottom:8px;">
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Hierarchy Level</div>
-            <div style="font-weight:600;color:#0f172a;">Level 4 — Authorized Certifier</div>
-            <div style="color:#64748b;font-size:11px;">Statutory Sign-off Counter-sign</div>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Authorized Port Stations</div>
-            <div style="font-weight:600;color:#0f172a;">Lautoka Wharf &amp; Suva Port</div>
-            <div style="color:#64748b;font-size:11px;">All deepwater container berths</div>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Gas &amp; Method Scope</div>
-            <div style="font-weight:600;color:#0f172a;">CH₃Br &amp; PH₃ Commodities</div>
-            <div style="color:#64748b;font-size:11px;">AFAS Standards 4.2 Compliant</div>
-          </div>
-        </div>
-        <div style="font-size:12px;color:#475569;line-height:1.4;">
-          <strong>Role Scope Summary:</strong> Authorized to oversee methyl bromide fumigations, calibrate gas detection sensors, endorse Gas IN/OUT records, and issue preliminary clearance before statutory counter-sign.
-        </div>
-      </div>
-    </div>
-
-    <!-- Statutory Permissions & Hardware Binding -->
-    <div style="margin-bottom:28px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <label style="font-size:13px;font-weight:600;color:#0f172a;">Statutory Permissions &amp; Security Hardware Binding <span style="color:#ef4444;">*</span></label>
-        <span style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.5px;">ALL ELEVATED CONTROLS ENFORCED</span>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid #cbd5e1;border-radius:10px;background:#ffffff;cursor:pointer;">
-          <input type="checkbox" id="rcPermRsa" checked style="margin-top:3px;accent-color:#059669;width:18px;height:18px;">
-          <div style="flex:1;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:14px;color:#0f172a;">Provision RSA-4096 Cryptographic Private Key</strong>
-              <span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">BAF PKI Tied</span>
-            </div>
-            <div style="font-size:12px;color:#64748b;margin-top:2px;">Generates hardware-backed digital signature tied to BAF PKI trust chain for Savenaca Tubuna, verifiable via national quarantine registry.</div>
-          </div>
-        </label>
-
-        <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid #cbd5e1;border-radius:10px;background:#ffffff;cursor:pointer;">
-          <input type="checkbox" id="rcPermMfa" checked style="margin-top:3px;accent-color:#059669;width:18px;height:18px;">
-          <div style="flex:1;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:14px;color:#0f172a;">Mandate Hardware MFA (YubiKey FIDO2)</strong>
-              <span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;">Device: #YUBI-8842-FJ</span>
-            </div>
-            <div style="font-size:12px;color:#64748b;margin-top:2px;">Requires physical token tap for gas injection release and safe ventilation endorsements before sheet venting commences.</div>
-          </div>
-        </label>
-
-        <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid #cbd5e1;border-radius:10px;background:#ffffff;cursor:pointer;">
-          <input type="checkbox" id="rcPermGas" checked style="margin-top:3px;accent-color:#059669;width:18px;height:18px;">
-          <div style="flex:1;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:14px;color:#0f172a;">Endorse Gas Clearance TLV (&lt; 1.0 ppm) Logs</strong>
-              <span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">Atmospheric Release</span>
-            </div>
-            <div style="font-size:12px;color:#64748b;margin-top:2px;">Authorizes Stevedore atmospheric safety clearance sign-off and container door unsealing for customs examination.</div>
-          </div>
-        </label>
-
-        <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid #cbd5e1;border-radius:10px;background:#ffffff;cursor:pointer;">
-          <input type="checkbox" id="rcPermSign" checked style="margin-top:3px;accent-color:#059669;width:18px;height:18px;">
-          <div style="flex:1;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:14px;color:#0f172a;">Statutory Co-Signatory Privileges</strong>
-              <span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">Official Sign-off</span>
-            </div>
-            <div style="font-size:12px;color:#64748b;margin-top:2px;">Authorizes endorsing Official Phytosanitary Certificates and AFAS Fumigation Record documents prior to export container loading.</div>
-          </div>
-        </label>
-      </div>
-    </div>
-
-    <!-- Footer Actions -->
-    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;padding-top:20px;">
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#64748b;max-width:480px;">
-        <span style="font-size:16px;color:#94a3b8;">🛡</span>
-        <span>Role transition and cryptographic key provisioning will be committed to the SHA-256 Merkle audit trail.</span>
-      </div>
-      <div style="display:flex;gap:12px;">
-        <button class="nu-btn nu-btn-ghost" onclick="Users.closeRoleClearanceModal()" style="padding:10px 20px;font-size:14px;font-weight:600;color:#475569;border:1px solid #cbd5e1;border-radius:8px;">Cancel</button>
-        <button class="nu-btn nu-btn-primary" onclick="Users.confirmRoleClearance()" style="padding:10px 20px;font-size:14px;font-weight:600;background:#059669;color:#ffffff;border:none;border-radius:8px;display:flex;align-items:center;gap:8px;">
-          <span>🔒</span> Confirm &amp; Authorize Role Assignment
-        </button>
-      </div>
     </div>
   </div>
 </div>
@@ -759,21 +603,6 @@ var Users = (() => {
     }
   }
 
-  function openRoleClearanceModal(userId, username) {
-    if ($('rcModalUserName')) $('rcModalUserName').textContent = username || 'Savenaca Tubuna';
-    if ($('rcCardName')) $('rcCardName').textContent = username || 'Savenaca Tubuna';
-    if ($('roleClearanceModalOverlay')) $('roleClearanceModalOverlay').style.display = 'flex';
-  }
-
-  function closeRoleClearanceModal() {
-    if ($('roleClearanceModalOverlay')) $('roleClearanceModalOverlay').style.display = 'none';
-  }
-
-  async function confirmRoleClearance() {
-    toast('Role ROLE_PORT_SR_CERT and Level 4 Clearance assigned successfully');
-    closeRoleClearanceModal();
-  }
-
   // Close on overlay click
   $('userModalOverlay').addEventListener('click', e => {
     if (e.target === $('userModalOverlay')) closeModal();
@@ -783,13 +612,7 @@ var Users = (() => {
     if (e.target === $('manageFieldsModalOverlay')) closeManageFieldsModal();
   });
 
-  if ($('roleClearanceModalOverlay')) {
-    $('roleClearanceModalOverlay').addEventListener('click', e => {
-      if (e.target === $('roleClearanceModalOverlay')) closeRoleClearanceModal();
-    });
-  }
-
-  return { openCreate, openEdit, closeModal, saveUser, deleteUser, openManageFields, closeManageFieldsModal, addFieldRow, saveFieldsDef, openRoleClearanceModal, closeRoleClearanceModal, confirmRoleClearance };
+  return { openCreate, openEdit, closeModal, saveUser, deleteUser, openManageFields, closeManageFieldsModal, addFieldRow, saveFieldsDef };
 })();
 </script>
 </div>
