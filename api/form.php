@@ -179,7 +179,37 @@ function nu_decode_layout($form) {
     $c = nu_form_columns();
     $layout = [];
     if (!empty($form[$c['layout']])) $layout = json_decode($form[$c['layout']], true);
-    return is_array($layout) ? $layout : [];
+    if (!is_array($layout)) $layout = [];
+
+    // Fallback: if form_layout is empty in DB, automatically build layout from table columns
+    if (empty($layout) && !empty($form[$c['table']])) {
+        $table = $form[$c['table']];
+        try {
+            $cols = nu_get_table_columns($table);
+            $fields = [];
+            foreach (array_keys($cols) as $col) {
+                if (in_array($col, ['id', 'created_at', 'updated_at'], true)) continue;
+                $label = ucwords(str_replace('_', ' ', $col));
+                $type  = 'text';
+                if (strpos($col, 'date') !== false) $type = 'date';
+                if (strpos($col, 'time') !== false) $type = 'datetime';
+                if (in_array($col, ['notes', 'details', 'description', 'pest_findings', 'recommendations', 'address'], true) || strpos($col, 'desc') !== false) $type = 'textarea';
+                if (strpos($col, 'cost') !== false || strpos($col, 'amount') !== false || strpos($col, 'qty') !== false || strpos($col, 'quantity') !== false || strpos($col, 'price') !== false || strpos($col, 'vol') !== false || strpos($col, 'weight') !== false) $type = 'number';
+
+                $fields[] = [
+                    'name' => $col,
+                    'label' => $label,
+                    'type' => $type,
+                    'col' => 6
+                ];
+            }
+            if (!empty($fields)) {
+                $layout = [['type' => 'row', 'children' => $fields]];
+            }
+        } catch (Throwable $e) {}
+    }
+
+    return $layout;
 }
 
 function nu_get_pk($table) {
