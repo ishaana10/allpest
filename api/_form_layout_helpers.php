@@ -23,31 +23,31 @@ function nu_flatten_layout_fields($layout) {
                     foreach (($tab['rows'] ?? []) as $row) {
                         $rowType = strtolower(trim((string)($row['type'] ?? 'row')));
                         if ($rowType === 'group') {
-                            // group inside a tab panel — recurse its rows
                             $walk($row['rows'] ?? []);
                         } else {
-                            // plain row inside a tab panel
                             $walk($row['fields'] ?? []);
+                            $walk($row['children'] ?? []);
                         }
                     }
                 }
                 continue;
             }
 
-            // ── Section or Group (uses children[] at top level) ────────────
+            // ── Section or Group ───────────────────────────────────────────
             if ($type === 'section' || $type === 'group') {
-                // Top-level sections/groups store nested nodes in children[]
                 $walk($item['children'] ?? []);
-                // Also handle rows[] for groups that appear inside tab panels
+                $walk($item['fields'] ?? []);
                 foreach (($item['rows'] ?? []) as $row) {
                     $walk($row['fields'] ?? []);
+                    $walk($row['children'] ?? []);
                 }
                 continue;
             }
 
-            // ── Plain row (uses fields[]) ──────────────────────────────────
-            if ($type === 'row' || isset($item['fields'])) {
+            // ── Plain row ──────────────────────────────────────────────────
+            if ($type === 'row') {
                 $walk($item['fields'] ?? []);
+                $walk($item['children'] ?? []);
                 continue;
             }
 
@@ -107,24 +107,28 @@ function nu_flatten_subforms_from_layout($layout) {
                             $walk($row['rows'] ?? []);
                         } else {
                             $walk($row['fields'] ?? []);
+                            $walk($row['children'] ?? []);
                         }
                     }
                 }
                 continue;
             }
 
-            // ── Section or Group (uses children[] at top level) ────────────
+            // ── Section or Group ───────────────────────────────────────────
             if ($type === 'section' || $type === 'group') {
                 $walk($item['children'] ?? []);
+                $walk($item['fields'] ?? []);
                 foreach (($item['rows'] ?? []) as $row) {
                     $walk($row['fields'] ?? []);
+                    $walk($row['children'] ?? []);
                 }
                 continue;
             }
 
-            // ── Plain row (uses fields[]) ──────────────────────────────────
-            if ($type === 'row' || isset($item['fields'])) {
+            // ── Plain row ──────────────────────────────────────────────────
+            if ($type === 'row') {
                 $walk($item['fields'] ?? []);
+                $walk($item['children'] ?? []);
                 continue;
             }
         }
