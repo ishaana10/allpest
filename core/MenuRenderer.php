@@ -365,9 +365,10 @@ class NuMenuRenderer
             } catch (Exception $ignored) {}
 
             $pid = ProjectContext::getId();
+            $projectWhere = $isAdmin ? "(project_id = ? OR project_id = 1 OR project_id = 0)" : "project_id = ?";
             $raw = $db->fetchAll(
                 "SELECT * FROM nu_menus
-                 WHERE  menu_active = 1 AND project_id = ?
+                 WHERE  menu_active = 1 AND {$projectWhere}
                  ORDER  BY menu_parent_id ASC, menu_order ASC, menu_id ASC",
                 [$pid]
             );
