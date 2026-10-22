@@ -1287,3 +1287,32 @@ INSERT IGNORE INTO `ap_certificates` (`cert_id`, `cert_number`, `job_id`, `cert_
 -- 6. Initial Version Snapshot Tracking
 INSERT IGNORE INTO `nu_project_versions` (`pv_id`, `pv_project_id`, `pv_version_tag`, `pv_description`, `pv_snapshot_data`, `pv_created_at`) VALUES
 (100, 100, 'v1.0.0', 'Initial release of Allpest Online Portal natively integrated in Nuvis Studio with 12 modules, forms, menus, and biosecurity sample data.', '{"version":"v1.0.0","modules":12}', NOW());
+-- 7. Allpest Biosecurity Workflow Registration
+INSERT IGNORE INTO `nu_workflows` (`wf_id`, `project_id`, `wf_code`, `wf_name`, `wf_description`, `wf_form_code`, `wf_active`) VALUES
+(200, 100, 'ap_biosecurity_job_wf', 'Allpest Biosecurity Job Life Cycle', 'Life cycle progression for Quarantine Fumigation & Biosecurity Treatment (BAF FJ0025MB Accredited Operations)', 'frm_job_orders', 1);
+
+INSERT IGNORE INTO `nu_workflow_stages` (`wfs_id`, `project_id`, `wfs_wf_id`, `wfs_code`, `wfs_name`, `wfs_description`, `wfs_color`, `wfs_is_start`, `wfs_is_end`, `wfs_order`) VALUES
+(201, 100, 200, 'wfs_scheduled', 'Scheduled / Intention Received', 'Job order logged and scheduled for treatment.', '#f59e0b', 1, 0, 1),
+(202, 100, 200, 'wfs_risk_assessed', 'Site Risk Assessed', 'Safety & structural integrity risk assessment completed and passed.', '#3b82f6', 0, 0, 2),
+(203, 100, 200, 'wfs_dosing_active', 'Fumigation Dosing Active', 'Gas dosing injected into container or enclosure; concentration monitored.', '#8b5cf6', 0, 0, 3),
+(204, 100, 200, 'wfs_venting', 'Venting & Degassing', 'Aeration in progress to clear chemical residues below safety thresholds.', '#06b6d4', 0, 0, 4),
+(205, 100, 200, 'wfs_rof_cleared', 'ROF Clearance Issued', 'Release of Fumigation (ROF) certificate authorized by BAF officer.', '#10b981', 0, 0, 5),
+(206, 100, 200, 'wfs_completed', 'Job Order Completed', 'Treatment complete, certificate issued, and cargo cleared for shipping.', '#059669', 0, 1, 6);
+
+INSERT IGNORE INTO `nu_workflow_transitions` (`wft_id`, `project_id`, `wft_wf_id`, `wft_from_id`, `wft_to_id`, `wft_action`, `wft_label`, `wft_hook`) VALUES
+(201, 100, 200, 201, 202, 'advance', 'Perform Risk Assessment', 'update_record'),
+(202, 100, 200, 202, 203, 'advance', 'Commence Fumigation Dosing', 'update_record'),
+(203, 100, 200, 203, 204, 'advance', 'Initiate Venting & Degassing', 'update_record'),
+(204, 100, 200, 204, 205, 'advance', 'Issue ROF Clearance Certificate', 'update_record'),
+(205, 100, 200, 205, 206, 'advance', 'Close & Finalize Job Order', 'update_record');
+
+-- 8. Allpest Saved Queries Registration
+INSERT IGNORE INTO `nu_queries` (`project_id`, `query_code`, `query_name`, `query_sql`, `query_description`, `query_active`) VALUES
+(100, 'qry_ap_active_jobs', 'Active Quarantine Operations', 'SELECT job_number, client_name, treatment_type, port_of_origin, status, scheduled_date FROM ap_job_orders WHERE status IN (\'Scheduled\', \'In Progress\', \'Fumigation Active\', \'Venting\') ORDER BY scheduled_date DESC', 'List of all live active biosecurity fumigations across ports.', 1),
+(100, 'qry_ap_baf_clearance_log', 'BAF ROF Clearance Audit Log', 'SELECT l.log_id, j.job_number, j.client_name, l.fumigant_chemical, l.dosage_rate, l.rof_status, l.baf_officer_name, l.clearance_time FROM ap_fumigation_logs l LEFT JOIN ap_job_orders j ON j.job_id = l.job_id ORDER BY l.created_at DESC', 'Complete ROF clearance logs for Biosecurity Authority Fiji audit verification.', 1),
+(100, 'qry_ap_chemical_stock', 'Chemical Inventory & Low Stock Alert', 'SELECT chemical_name, active_ingredient, batch_number, quantity_on_hand, unit_of_measure, reorder_level, expiry_date FROM ap_chemical_inventory ORDER BY expiry_date ASC', 'Chemical inventory stock monitoring and expiry alerts.', 1);
+
+-- 9. Allpest Compliance Reports Registration
+INSERT IGNORE INTO `nu_reports` (`project_id`, `report_code`, `report_name`, `report_type`, `report_sql`, `report_columns`, `report_active`) VALUES
+(100, 'rpt_ap_baf_audit_manifest', 'BAF Monthly Biosecurity Audit Manifest', 'table', 'SELECT j.job_number, j.client_name, j.client_exporter_code, j.vessel_aircraft, j.treatment_type, c.cert_number, c.status as cert_status, c.issue_date FROM ap_job_orders j LEFT JOIN ap_certificates c ON c.job_id = j.job_id', '[{"field":"job_number","label":"Job No"},{"field":"client_name","label":"Exporter Name"},{"field":"client_exporter_code","label":"BAF Exporter Code"},{"field":"vessel_aircraft","label":"Vessel"},{"field":"treatment_type","label":"Treatment"},{"field":"cert_number","label":"Cert No"},{"field":"cert_status","label":"Cert Status"},{"field":"issue_date","label":"Issue Date"}]', 1),
+(100, 'rpt_ap_container_dosing_summary', 'Container Fumigation & Dosing Summary', 'table', 'SELECT j.job_number, m.container_no, m.seal_no, m.volume_m3, m.status as container_status FROM ap_cargo_manifest m LEFT JOIN ap_job_orders j ON j.job_id = m.job_id', '[{"field":"job_number","label":"Job No"},{"field":"container_no","label":"Container No"},{"field":"seal_no","label":"Seal No"},{"field":"volume_m3","label":"Volume m3"},{"field":"container_status","label":"Status"}]', 1);

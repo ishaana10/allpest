@@ -552,15 +552,54 @@ class NuFormRenderer {
             if (isset($data[$name])) $safeData[$name] = $data[$name];
         }
 
+        // Biosecurity automated business rules
+        if ($formCode === 'frm_gas_readings' && isset($safeData['measured_conc_g_m3'])) {
+            $target = (float)($safeData['target_conc_g_m3'] ?? 0);
+            $measured = (float)$safeData['measured_conc_g_m3'];
+            $safeData['passed'] = ($measured >= $target && $target > 0) ? 1 : 0;
+        }
+
         if ($recordId) {
             $old = $this->db->fetchOne("SELECT * FROM {$table} WHERE id = :id", [':id' => $recordId]);
             $this->db->update($table, $safeData, "id = :id", [':id' => $recordId]);
             $this->audit->log('update', $table, $recordId, $old, $safeData);
-            return $recordId;
+            $savedId = $recordId;
         } else {
-            $id = $this->db->insert($table, $safeData);
-            $this->audit->log('create', $table, $id, null, $safeData);
-            return $id;
+            $savedId = $this->db->insert($table, $safeData);
+            $this->audit->log('create', $table, $savedId, null, $safeData);
+        }
+
+        // Dispatch post-save event hooks safely
+        $this->executePostSaveHooks($formCode, $safeData, $savedId);
+
+        return $savedId;
+    }
+
+    /**
+     * Dispatch structured form event hooks without eval.
+     */
+    private function executePostSaveHooks(string $formCode, array $data, $savedId): void
+    {
+        if ($formCode === 'frm_fumigation_logs') {
+            // Auto-sync certificates when ROF is issued
+            if (($data['rof_status'] ?? '') === 'ROF Issued' && !empty($data['job_id'])) {
+                $jobId = $data['job_id'];
+                $existingCert = $this->db->fetchOne("SELECT cert_id FROM ap_certificates WHERE job_id = :job_id LIMIT 1", [':job_id' => $jobId]);
+                if (!$existingCert) {
+                    $certNo = 'CERT-FUM-' . date('Y') . '-' . rand(100, 999);
+                    $this->db->insert('ap_certificates', [
+                        'cert_id' => 'cert_' . uniqid(),
+                        'cert_number' => $certNo,
+                        'job_id' => $jobId,
+                        'cert_type' => 'ROF Clearance Certificate',
+                        'client_name' => $data['baf_officer_name'] ?? 'Authorized Client',
+                        'issue_date' => date('Y-m-d'),
+                        'expiry_date' => date('Y-m-d', strtotime('+6 months')),
+                        'baf_accreditation_code' => 'BAF-AFAS-FJ0025MB',
+                        'status' => 'Active'
+                    ]);
+                }
+            }
         }
     }
 
