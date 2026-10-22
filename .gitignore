@@ -39,3 +39,4 @@ api/test.php
 # Composer Dependencies
 vendor/
 composer.lock
+your_db_name
