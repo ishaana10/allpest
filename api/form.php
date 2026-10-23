@@ -3260,7 +3260,7 @@ function nu_handle_load_form() {
         'form_name'                => $form[$c['name']]                      ?? '',
         'form_code'                => $form[$c['code']]                      ?? '',
         'form_table'               => $form[$c['table']]                     ?? '',
-        'form_layout'              => json_decode($form[$c['layout']] ?? '[]', true) ?: [],
+        'form_layout'              => nu_decode_layout($form),
         'form_type'                => $form[$c['type']]                      ?? 'main',
         'browse_display_mode'      => $form[$c['display_mode']]              ?? 'inline',
         'form_pk_type'             => $form[$c['pk_type']]                   ?? 'autoincrement',
