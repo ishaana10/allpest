@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__, 2) . '/core/module_bootstrap.php';
+require_once dirname(__DIR__, 2) . '/api/_form_layout_helpers.php';
+if (file_exists(dirname(__DIR__, 2) . '/api/form.php')) {
+    require_once dirname(__DIR__, 2) . '/api/form.php';
+}
 // $auth, $nuConfig available. Session open under 'nu5sess'.
 
 $db    = NuDatabase::getInstance();
@@ -640,8 +644,9 @@ foreach ($forms as $f) {
     <div class="nu-grid" id="formsGrid">
       <?php foreach ($forms as $f): ?>
       <?php
-        $layout     = @json_decode($f['form_layout'] ?? '[]', true);
-        $fieldCount = is_array($layout) ? count($layout) : 0;
+        $layoutFields = function_exists('nu_decode_layout') ? nu_decode_layout($f) : json_decode($f['form_layout'] ?? '[]', true);
+        $flatFields   = function_exists('nu_flatten_layout_fields') ? nu_flatten_layout_fields($layoutFields) : (is_array($layoutFields) ? $layoutFields : []);
+        $fieldCount   = count($flatFields);
         $formLabel  = htmlspecialchars($f['form_name'], ENT_QUOTES);
         $formCode   = htmlspecialchars($f['form_code'], ENT_QUOTES);
         $browseMode = $f['browse_display_mode'] ?? 'inline';
@@ -723,8 +728,9 @@ foreach ($forms as $f) {
           <tbody id="formsBrowseTableBody">
             <?php foreach ($forms as $f): ?>
             <?php
-              $layout     = @json_decode($f['form_layout'] ?? '[]', true);
-              $fieldCount = is_array($layout) ? count($layout) : 0;
+              $layoutFields = function_exists('nu_decode_layout') ? nu_decode_layout($f) : json_decode($f['form_layout'] ?? '[]', true);
+              $flatFields   = function_exists('nu_flatten_layout_fields') ? nu_flatten_layout_fields($layoutFields) : (is_array($layoutFields) ? $layoutFields : []);
+              $fieldCount   = count($flatFields);
               $formLabel  = htmlspecialchars($f['form_name'], ENT_QUOTES);
               $formCode   = htmlspecialchars($f['form_code'], ENT_QUOTES);
               $browseMode = $f['browse_display_mode'] ?? 'inline';
