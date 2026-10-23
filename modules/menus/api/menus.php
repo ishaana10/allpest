@@ -183,17 +183,15 @@ if ($action === 'create') {
         mu_json(['success' => false, 'message' => 'Label is required']);
     }
 
-    $code = trim(strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $label)), '_');
-
     try {
         $db->query(
             "INSERT INTO nu_menus
-             (menu_code, menu_label, menu_type, menu_target, menu_icon, menu_order,
+             (menu_label, menu_type, menu_target, menu_icon, menu_order,
               menu_parent_id, menu_role_access, menu_roles, menu_active,
               menu_open_mode, menu_browse_mode, menu_preview_mode, menu_default_view)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
-                $code, $label, $type, $target, $icon, $order,
+                $label, $type, $target, $icon, $order,
                 $parent ?: null, $rolesJson, $rolesCsv, $active,
                 $openMode, $browseMode, $previewMode, $defaultView
             ]
