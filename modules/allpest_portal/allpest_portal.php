@@ -67,6 +67,9 @@ try {
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     New Job Order
                 </button>
+                <button onclick="NuApp.loadModule('fumigation_record')" style="background: #0284c7; color: #ffffff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                    📋 Record of Fumigation
+                </button>
                 <button onclick="NuApp.openForm('frm_fumigation_logs')" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
                     Log Gas Readings
                 </button>
@@ -125,6 +128,11 @@ try {
             <div onclick="NuApp.openForm('frm_risk_assessment')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='#059669'" onmouseout="this.style.borderColor='#e2e8f0'">
                 <div style="font-weight: 700; font-size: 14px; color: #0f172a; margin-bottom: 4px;">Risk Assessment</div>
                 <div style="font-size: 12px; color: #64748b;">Site risk & safety checks</div>
+            </div>
+
+            <div onclick="NuApp.loadModule('fumigation_record')" style="background: #ecfdf5; border: 2px solid #059669; border-radius: 10px; padding: 16px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(5,150,105,0.15)'" onmouseout="this.style.boxShadow='none'">
+                <div style="font-weight: 800; font-size: 14px; color: #047857; margin-bottom: 4px;">📋 Record of Fumigation</div>
+                <div style="font-size: 12px; color: #065f46;">Full Methyl Bromide record (Sections A–E, toggles & reading modals)</div>
             </div>
 
             <div onclick="NuApp.openForm('frm_fumigation_logs')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='#059669'" onmouseout="this.style.borderColor='#e2e8f0'">
