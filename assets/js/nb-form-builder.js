@@ -2562,7 +2562,11 @@ if (canvasType === 'subform' && sfData) {
 
       var bLayout = [];
       if (formData.browse_layout) {
-        try { bLayout = JSON.parse(formData.browse_layout); } catch (e) { bLayout = []; }
+        if (typeof formData.browse_layout === 'string') {
+          try { bLayout = JSON.parse(formData.browse_layout); } catch (e) { bLayout = []; }
+        } else if (Array.isArray(formData.browse_layout)) {
+          bLayout = formData.browse_layout;
+        }
       }
       if (Array.isArray(bLayout) && bLayout.length > 0) {
         bLayout.forEach(function (col) {
@@ -2595,9 +2599,31 @@ if (canvasType === 'subform' && sfData) {
         conds.forEach(function(cond) { me.addBrowseCondition(cond); });
       }
 
+      var rawLayout = [];
+      if (typeof formData.form_layout === 'string') {
+        try { rawLayout = JSON.parse(formData.form_layout || '[]'); } catch (e) { rawLayout = []; }
+      } else if (Array.isArray(formData.form_layout)) {
+        rawLayout = formData.form_layout;
+      }
+      if (!Array.isArray(rawLayout)) rawLayout = [];
+
       var layout = [];
-      try { layout = JSON.parse(formData.form_layout || '[]'); } catch (e) { layout = []; }
-      if (!Array.isArray(layout)) layout = [];
+      rawLayout.forEach(function (item, idx) {
+        if (item && item.type === 'row' && (Array.isArray(item.children) || Array.isArray(item.fields))) {
+          var rowFields = item.children || item.fields;
+          rowFields.forEach(function (f) {
+            if (f && typeof f === 'object') {
+              var fCopy = Object.assign({}, f);
+              if (fCopy.row_index === undefined || fCopy.row_index === null) {
+                fCopy.row_index = idx;
+              }
+              layout.push(fCopy);
+            }
+          });
+        } else {
+          layout.push(item);
+        }
+      });
       var canvas = document.getElementById('formCanvas'); if (!canvas) return;
       _attachCanvasRowDrop(canvas);
       var rowMap = {}, topOrder = [], seenRows = {};
