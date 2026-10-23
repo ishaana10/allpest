@@ -3260,7 +3260,7 @@ function nu_handle_load_form() {
         'form_name'                => $form[$c['name']]                      ?? '',
         'form_code'                => $form[$c['code']]                      ?? '',
         'form_table'               => $form[$c['table']]                     ?? '',
-        'form_layout'              => nu_decode_layout($form),
+        'form_layout'              => nu_decode_form_layout($form),
         'form_type'                => $form[$c['type']]                      ?? 'main',
         'browse_display_mode'      => $form[$c['display_mode']]              ?? 'inline',
         'form_pk_type'             => $form[$c['pk_type']]                   ?? 'autoincrement',
@@ -3283,7 +3283,8 @@ function nu_handle_load_form() {
 }
 
 /* ── Router ─────────────────────────────────────────── */
-if (PHP_SAPI !== 'cli' || isset($_GET['action'])) {
+$_nu_is_direct = isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) === realpath(__FILE__);
+if (!empty($_GET['action']) || $_nu_is_direct) {
     try {
         $action = $_GET['action'] ?? '';
         nu_log('action=' . $action, 'router');
