@@ -106,6 +106,86 @@ class NuDatabase {
             } catch (Exception $ignored) {}
         }
 
+        // Self-healing: Ensure Record of Fumigation tables exist
+        if (!$sessionActive || empty($_SESSION['_nu_fumigation_records_ensured'])) {
+            try {
+                $hasFumRecTable = $this->pdo->query("SHOW TABLES LIKE 'ap_fumigation_records'")->fetch();
+                if (!$hasFumRecTable) {
+                    $this->pdo->exec("CREATE TABLE IF NOT EXISTS `ap_fumigation_records` (
+                        `record_id` VARCHAR(36) PRIMARY KEY,
+                        `job_id` VARCHAR(36) DEFAULT NULL,
+                        `job_number` VARCHAR(50) DEFAULT NULL,
+                        `client_name` VARCHAR(150) DEFAULT NULL,
+                        `treatment_provider_id` VARCHAR(50) DEFAULT 'FJ0025MB',
+                        `fumigator_name` VARCHAR(100) DEFAULT NULL,
+                        `fumigator_accreditation` VARCHAR(100) DEFAULT NULL,
+                        `street_address` VARCHAR(255) DEFAULT NULL,
+                        `suburb_town_city` VARCHAR(100) DEFAULT NULL,
+                        `postcode` VARCHAR(20) DEFAULT NULL,
+                        `country` VARCHAR(100) DEFAULT 'Fiji',
+                        `consignment_description` TEXT DEFAULT NULL,
+                        `target_of_fumigation` VARCHAR(200) DEFAULT NULL,
+                        `container_numbers` TEXT DEFAULT NULL,
+                        `specified_dose_rate` DECIMAL(8,2) DEFAULT NULL,
+                        `specified_exposure_period` DECIMAL(5,2) DEFAULT NULL,
+                        `enclosure_type` VARCHAR(50) DEFAULT 'Sheeted enclosure',
+                        `enclosure_type_other` VARCHAR(100) DEFAULT NULL,
+                        `consignment_suitable` TINYINT(1) DEFAULT 1,
+                        `remedial_action_taken` TEXT DEFAULT NULL,
+                        `enclosure_length` DECIMAL(8,2) DEFAULT NULL,
+                        `enclosure_width` DECIMAL(8,2) DEFAULT NULL,
+                        `enclosure_height` DECIMAL(8,2) DEFAULT NULL,
+                        `total_volume_m3` DECIMAL(10,2) DEFAULT NULL,
+                        `fumigation_temp_type` VARCHAR(30) DEFAULT 'Ambient',
+                        `min_temperature` DECIMAL(5,2) DEFAULT NULL,
+                        `temp_unit` VARCHAR(10) DEFAULT '°C',
+                        `heaters_used` TINYINT(1) DEFAULT 0,
+                        `dose_rate_used` DECIMAL(8,2) DEFAULT NULL,
+                        `calculated_dose_g` DECIMAL(10,2) DEFAULT NULL,
+                        `dose_percentage` DECIMAL(5,2) DEFAULT NULL,
+                        `amount_ch3br_applied_g` DECIMAL(10,2) DEFAULT NULL,
+                        `device_serial_numbers` VARCHAR(255) DEFAULT NULL,
+                        `injection_finished_at` DATETIME DEFAULT NULL,
+                        `ventilation_start_at` DATETIME DEFAULT NULL,
+                        `final_tlv_ppm1` DECIMAL(8,2) DEFAULT NULL,
+                        `final_tlv_ppm2` DECIMAL(8,2) DEFAULT NULL,
+                        `final_tlv_ppm3` DECIMAL(8,2) DEFAULT NULL,
+                        `topup_amount_g_m3` DECIMAL(8,2) DEFAULT NULL,
+                        `topup_time` VARCHAR(20) DEFAULT NULL,
+                        `topup_concentration` DECIMAL(8,2) DEFAULT NULL,
+                        `signature_gas_in` VARCHAR(255) DEFAULT NULL,
+                        `signature_gas_out` VARCHAR(255) DEFAULT NULL,
+                        `declaration_date` DATE DEFAULT NULL,
+                        `gov_officer_name` VARCHAR(100) DEFAULT NULL,
+                        `gov_officer_signature` VARCHAR(255) DEFAULT NULL,
+                        `status` VARCHAR(50) DEFAULT 'Draft',
+                        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+                    $this->pdo->exec("CREATE TABLE IF NOT EXISTS `ap_fumigation_readings` (
+                        `reading_id` VARCHAR(36) PRIMARY KEY,
+                        `record_id` VARCHAR(36) NOT NULL,
+                        `stage_type` VARCHAR(20) DEFAULT 'During',
+                        `reading_date` DATE DEFAULT NULL,
+                        `reading_time` VARCHAR(20) DEFAULT NULL,
+                        `loc_1_fb` DECIMAL(8,2) DEFAULT NULL,
+                        `loc_2_mc` DECIMAL(8,2) DEFAULT NULL,
+                        `loc_3_tb` DECIMAL(8,2) DEFAULT NULL,
+                        `loc_4` DECIMAL(8,2) DEFAULT NULL,
+                        `loc_5` DECIMAL(8,2) DEFAULT NULL,
+                        `equilibrium_result_pct` DECIMAL(5,2) DEFAULT NULL,
+                        `standard_g_m3` DECIMAL(8,2) DEFAULT NULL,
+                        `fumigator_initials` VARCHAR(20) DEFAULT NULL,
+                        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                }
+                if ($sessionActive) {
+                    $_SESSION['_nu_fumigation_records_ensured'] = true;
+                }
+            } catch (Exception $ignored) {}
+        }
+
         // Self-healing: Ensure AI Agent tables exist and are seeded
         if (!$sessionActive || empty($_SESSION['_nu_agent_tables_ensured'])) {
             try {

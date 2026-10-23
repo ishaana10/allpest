@@ -217,6 +217,26 @@ class NuMenuRenderer
                     ]);
                 }
 
+                $existsFumRec = $db->fetchOne("SELECT menu_id FROM nu_menus WHERE menu_target = 'fumigation_record'");
+                if (!$existsFumRec) {
+                    $db->insert('nu_menus', [
+                        'project_id'        => $pid,
+                        'menu_label'        => 'Record of Fumigation',
+                        'menu_type'         => 'module',
+                        'menu_target'       => 'fumigation_record',
+                        'menu_parent_id'    => 0,
+                        'menu_order'        => 4,
+                        'menu_roles'        => '',
+                        'menu_role_access'  => '[]',
+                        'menu_active'       => 1,
+                        'menu_icon'         => 'file-text',
+                        'menu_open_mode'    => 'inline|browse',
+                        'menu_browse_mode'  => 'inline',
+                        'menu_preview_mode' => 'inline',
+                        'menu_default_view' => 'browse'
+                    ]);
+                }
+
                 $existsBarcode = $db->fetchOne("SELECT menu_id FROM nu_menus WHERE menu_target = 'barcode'");
                 if (!$existsBarcode) {
                     $db->insert('nu_menus', [

@@ -243,7 +243,9 @@ window.NuApp = {
     'barcode',
     'procedures',
     'projects',
-    'system_demo_files'
+    'system_demo_files',
+    'allpest_portal',
+    'fumigation_record'
   ]),
 
   init() {
@@ -735,6 +737,13 @@ window.NuApp = {
       console.error('viewRecord error', err);
       this.toast('Error: ' + err.message, 'error');
     }
+  },
+
+  openForm(code, label, mode) {
+    if (this._systemModules.has(code)) {
+      return this.loadModule(code);
+    }
+    return this.addRecord(code, label, mode);
   },
 
   addRecord(code, formLabel, displayMode) {
